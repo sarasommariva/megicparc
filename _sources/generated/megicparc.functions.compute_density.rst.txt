@@ -1,0 +1,12 @@
+﻿:mod:`megicparc.functions`.compute_density
+=======================================================
+
+.. currentmodule:: megicparc.functions
+
+.. autofunction:: compute_density
+
+.. include:: megicparc.functions.compute_density.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>

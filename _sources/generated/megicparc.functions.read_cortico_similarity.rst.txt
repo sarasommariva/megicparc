@@ -1,0 +1,12 @@
+﻿:mod:`megicparc.functions`.read_cortico_similarity
+===============================================================
+
+.. currentmodule:: megicparc.functions
+
+.. autofunction:: read_cortico_similarity
+
+.. include:: megicparc.functions.read_cortico_similarity.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>

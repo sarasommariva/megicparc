@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Structural poperties of the MEG-informed parcellations &#8212; megicparc 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="../_static/documentation_options.js?v=292eb321"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Functional poperties of the MEG-informed parcellations" href="plot_4_functional_properties.html" />
+    <link rel="prev" title="Create multiple MEG informed cortical parcellations for further analysis" href="plot_2_compute_parc.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          megicparc</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../api.html">API</a></li>
+                <li><a href="index.html">Examples</a></li>
+                <li><a href="../auto_paper/index.html">Reproducing paper results</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/auto_examples/plot_3_structural_properties.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-3-structural-properties-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code</p>
+</div>
+<section class="sphx-glr-example-title" id="structural-poperties-of-the-meg-informed-parcellations">
+<span id="sphx-glr-auto-examples-plot-3-structural-properties-py"></span><h1>Structural poperties of the MEG-informed parcellations<a class="headerlink" href="#structural-poperties-of-the-meg-informed-parcellations" title="Link to this heading">¶</a></h1>
+<p>Import the required packages</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">patches</span>
+
+<span class="kn">from</span> <span class="nn">mne</span> <span class="kn">import</span> <span class="p">(</span><span class="n">read_forward_solution</span><span class="p">,</span> <span class="n">pick_types_forward</span><span class="p">,</span>
+                 <span class="n">convert_forward_solution</span><span class="p">,</span> <span class="n">read_labels_from_annot</span><span class="p">,</span>
+                 <span class="n">spatial_src_adjacency</span><span class="p">,</span> <span class="n">read_source_spaces</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">mne.viz</span> <span class="kn">import</span> <span class="n">get_brain_class</span>
+<span class="kn">from</span> <span class="nn">mne.datasets</span> <span class="kn">import</span> <span class="n">sample</span>
+
+<span class="kn">import</span> <span class="nn">megicparc</span>
+</pre></div>
+</div>
+<p>Define input parameters for the flame algorithm running in megicperc</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">gamma_tot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+<span class="n">knn_tot</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">]</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">parc</span> <span class="o">=</span> <span class="s1">&#39;aparc&#39;</span>
+<span class="n">sensors_meg</span> <span class="o">=</span> <span class="s1">&#39;grad&#39;</span>
+
+<span class="n">folder_fl</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;data_mne_sample&#39;</span><span class="p">)</span>
+<span class="n">string_target_file</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_fl</span><span class="p">,</span>
+                        <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">_flame_grad_k</span><span class="si">{:d}</span><span class="s1">_gamma</span><span class="si">{:1.2f}</span><span class="s1">_theta</span><span class="si">{:1.2f}</span><span class="s1">.pkl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Load lead-field matrix, source-space and anatomy-based Atlas</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">data_path</span><span class="p">()</span>
+<span class="n">subjects_dir</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;subjects&#39;</span><span class="p">)</span>
+<span class="n">subject</span> <span class="o">=</span> <span class="s1">&#39;sample&#39;</span>
+<span class="n">fwd_file</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;MEG&#39;</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="s1">&#39;sample_audvis-meg-eeg-oct-6-fwd.fif&#39;</span><span class="p">)</span>
+<span class="n">src_file</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_fl</span><span class="p">,</span> <span class="s1">&#39;source_space_distance-src.fif&#39;</span><span class="p">)</span>
+
+<span class="n">fwd</span> <span class="o">=</span> <span class="n">read_forward_solution</span><span class="p">(</span><span class="n">fwd_file</span><span class="p">)</span>
+<span class="n">fwd</span> <span class="o">=</span> <span class="n">pick_types_forward</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">meg</span><span class="o">=</span><span class="n">sensors_meg</span><span class="p">,</span> <span class="n">eeg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">ref_meg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="s1">&#39;bads&#39;</span><span class="p">)</span>
+<span class="n">fwd</span> <span class="o">=</span> <span class="n">convert_forward_solution</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">surf_ori</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">use_cps</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">src</span> <span class="o">=</span> <span class="n">read_source_spaces</span><span class="p">(</span><span class="n">src_file</span><span class="p">)</span>
+<span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span>
+<span class="n">n_vert</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">]</span>
+
+<span class="n">label_lh</span> <span class="o">=</span> <span class="n">read_labels_from_annot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">parc</span><span class="o">=</span><span class="n">parc</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;lh&#39;</span><span class="p">,</span>
+                                  <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+<span class="n">label_rh</span> <span class="o">=</span> <span class="n">read_labels_from_annot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">parc</span><span class="o">=</span><span class="n">parc</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;rh&#39;</span><span class="p">,</span>
+                                  <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+<span class="n">label</span> <span class="o">=</span> <span class="n">label_lh</span> <span class="o">+</span> <span class="n">label_rh</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Reading forward solution from /u/29/sommars1/unix/mne_data/MNE-sample-data/MEG/sample/sample_audvis-meg-eeg-oct-6-fwd.fif...
+    Reading a source space...
+    Computing patch statistics...
+    Patch information added...
+    Distance information added...
+    [done]
+    Reading a source space...
+    Computing patch statistics...
+    Patch information added...
+    Distance information added...
+    [done]
+    2 source spaces read
+    Desired named matrix (kind = 3523) not available
+    Read MEG forward solution (7498 sources, 306 channels, free orientations)
+    Desired named matrix (kind = 3523) not available
+    Read EEG forward solution (7498 sources, 60 channels, free orientations)
+    Forward solutions combined: MEG, EEG
+    Source spaces transformed to the forward solution coordinate frame
+    203 out of 366 channels remain after picking
+    Average patch normals will be employed in the rotation to the local surface coordinates....
+    Converting to surface-based source orientations...
+    [done]
+    Reading a source space...
+    Computing patch statistics...
+    Patch information added...
+    Distance information added...
+    [done]
+    Reading a source space...
+    Computing patch statistics...
+    Patch information added...
+    Distance information added...
+    [done]
+    2 source spaces read
+Reading labels from parcellation...
+   read 34 labels from /u/29/sommars1/unix/mne_data/MNE-sample-data/subjects/sample/label/lh.aparc.annot
+Reading labels from parcellation...
+   read 34 labels from /u/29/sommars1/unix/mne_data/MNE-sample-data/subjects/sample/label/rh.aparc.annot
+</pre></div>
+</div>
+<p>Initialization</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">num_roi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)))</span>
+<span class="n">n_cc</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span> <span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> \
+        <span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)</span> <span class="k">for</span> <span class="n">knn</span> <span class="ow">in</span> <span class="n">knn_tot</span> <span class="k">for</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="n">gamma_tot</span><span class="p">]}</span>
+<span class="n">coverage</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Analysis with anatomy-based parcels.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">proj_anrois</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">labels_to_array</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">])</span>
+
+<span class="c1">#   Number of regions</span>
+<span class="k">if</span> <span class="n">proj_anrois</span><span class="p">[</span><span class="s1">&#39;outliers&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">aux_num_roi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">proj_anrois</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">aux_num_roi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">proj_anrois</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">])</span>
+<span class="n">num_roi_an</span> <span class="o">=</span> <span class="n">aux_num_roi</span>
+<span class="c1">#   Coverage</span>
+<span class="n">coverage_an</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_vert</span> <span class="o">-</span> <span class="n">proj_anrois</span><span class="p">[</span><span class="s1">&#39;outliers&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">n_vert</span>
+</pre></div>
+</div>
+<p>Analysis with meg-informed parcels</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">bmesh_adj_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spatial_src_adjacency</span><span class="p">(</span><span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">todense</span><span class="p">())</span>
+
+<span class="k">for</span> <span class="n">idx_g</span><span class="p">,</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+
+        <span class="n">target_file</span> <span class="o">=</span> <span class="n">string_target_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">subject</span><span class="p">,</span> <span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loading </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">target_file</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">target_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">aux_lf</span><span class="p">:</span>
+            <span class="n">flame_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">aux_lf</span><span class="p">)</span>
+
+            <span class="c1"># Number of regions</span>
+            <span class="n">num_roi</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">]</span> <span class="o">=</span> <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">]</span>
+            <span class="c1"># Coverage</span>
+            <span class="n">coverage</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_vert</span> <span class="o">-</span> <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;outliers&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">n_vert</span>
+            <span class="c1"># Number of connected components</span>
+            <span class="n">n_cc</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)]</span> <span class="o">+=</span> \
+                 <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">megicparc</span><span class="o">.</span><span class="n">compute_connected_components</span><span class="p">(</span>
+                         <span class="n">bmesh_adj_mat</span><span class="p">,</span> <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">][</span><span class="n">ir</span><span class="p">]))</span> \
+                         <span class="k">for</span> <span class="n">ir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">])]</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>-- number of adjacent vertices : 8196
+/m/home/home2/29/sommars1/data/Documents/sara_flame_pythontools/examples/plot_3_structural_properties.py:86: RuntimeWarning: 8.5% of original source space vertices have been omitted, tri-based adjacency will have holes.
+Consider using distance-based adjacency or morphing data to all source space vertices.
+  bmesh_adj_mat = np.array(spatial_src_adjacency(fwd[&#39;src&#39;]).todense())
+Loading ../data/data_mne_sample/sample_flame_grad_k10_gamma0.00_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k20_gamma0.00_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.00_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k40_gamma0.00_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k10_gamma0.20_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k20_gamma0.20_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.20_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k40_gamma0.20_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k10_gamma0.40_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k20_gamma0.40_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.40_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k40_gamma0.40_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k10_gamma0.60_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k20_gamma0.60_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.60_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k40_gamma0.60_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k10_gamma0.80_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k20_gamma0.80_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.80_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k40_gamma0.80_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k10_gamma1.00_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k20_gamma1.00_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma1.00_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k40_gamma1.00_theta0.05.pkl
+</pre></div>
+</div>
+<p>Compute mean and SEM of the number of connected components over the regions
+of a MEG-informed parcellations</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">n_cc_ave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)))</span>
+<span class="n">n_cc_sem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)))</span>
+
+<span class="k">for</span> <span class="n">idx_g</span><span class="p">,</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+        <span class="n">aux_cc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">n_cc</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)])</span>
+        <span class="n">n_cc_ave</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">aux_cc</span><span class="p">)</span>
+        <span class="n">n_cc_sem</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">aux_cc</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">aux_cc</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Additional analysis: impact of the anatomical constraints</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">k_nn_ac</span> <span class="o">=</span> <span class="p">[</span><span class="mi">30</span><span class="p">]</span>
+<span class="n">theta_ac</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">]</span>
+<span class="n">gamma_ac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">)</span>
+
+<span class="n">tolls</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.05</span><span class="p">]</span>
+
+<span class="n">spread</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">num_roi_constr</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">idx_t</span><span class="p">,</span> <span class="n">theta</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">theta_ac</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">k_nn_ac</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">idx_g</span><span class="p">,</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gamma_ac</span><span class="p">):</span>
+<span class="c1">#           6.1. Reload parcellation</span>
+            <span class="n">target_file</span> <span class="o">=</span> <span class="n">string_target_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span>
+                                                    <span class="n">theta</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loading </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">target_file</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">target_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">aux_lf</span><span class="p">:</span>
+                <span class="n">flame_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">aux_lf</span><span class="p">)</span>
+
+            <span class="n">num_roi_constr</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">_theta</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta</span><span class="p">)]</span> <span class="o">=</span> \
+                <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">]</span>
+<span class="c1">#           6.2. Compute cotingency matrix</span>
+            <span class="n">conting_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">p_fl</span><span class="p">,</span> <span class="n">p_an</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">p_an</span> <span class="ow">in</span> <span class="n">proj_anrois</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">]])</span>
+                    <span class="k">for</span> <span class="n">p_fl</span> <span class="ow">in</span> <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">]]])</span>
+            <span class="n">conting_mat</span> <span class="o">=</span> <span class="n">conting_mat</span> <span class="o">/</span> \
+                    <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">conting_mat</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+<span class="c1">#           6.3. Compute spread of flame regions over anatomical</span>
+            <span class="n">spread</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">_theta</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta</span><span class="p">)]</span> <span class="o">=</span> \
+                <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tolls</span><span class="p">)))</span>
+
+            <span class="k">for</span> <span class="n">idx_t</span><span class="p">,</span> <span class="n">toll</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tolls</span><span class="p">):</span>
+                <span class="n">spread</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">_theta</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta</span><span class="p">)]</span> <span class="p">[:,</span> <span class="n">idx_t</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">conting_mat</span> <span class="o">&gt;</span> <span class="n">toll</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma1.00_theta0.00.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.80_theta0.00.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.60_theta0.00.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma1.00_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.80_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.60_theta0.05.pkl
+</pre></div>
+</div>
+<p>General parameters for plotting</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">22</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.grid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;lines.linewidth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;errorbar.capsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">3.5</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.figsize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;patch.force_edgecolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+                  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+                  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.9655</span><span class="p">,</span> <span class="mi">1</span><span class="p">])])</span>
+</pre></div>
+</div>
+<p>Plot 1. Number of regions</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">f_numreg</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span> <span class="n">num_roi</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,],</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">idx_k</span><span class="p">],</span>
+                 <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$k$ = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">knn</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span> <span class="n">num_roi_an</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)),</span>
+             <span class="s1">&#39;k--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;DK&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="p">[</span><span class="mf">0.68</span><span class="p">,</span> <span class="mf">0.47</span><span class="p">],</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Weight of the spatial distances&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Number of parcels&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">350</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">)</span>
+
+<span class="n">f_numreg</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mf">8.5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_3_structural_properties_001.png" srcset="../_images/sphx_glr_plot_3_structural_properties_001.png" alt="plot 3 structural properties" class = "sphx-glr-single-img"/><p>Plot 2. Number of connected components</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">f_cc</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span> <span class="n">n_cc_ave</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span> <span class="n">yerr</span><span class="o">=</span><span class="n">n_cc_sem</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span>
+                 <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$k$ = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">knn</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">idx_k</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Weight of the spatial distances&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Number connected components&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">)</span>
+<span class="c1">#plt.show()</span>
+
+<span class="n">f_cc</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mf">8.5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_3_structural_properties_002.png" srcset="../_images/sphx_glr_plot_3_structural_properties_002.png" alt="plot 3 structural properties" class = "sphx-glr-single-img"/><p>. Plot 3. (Additional) Impact of anatomical constraints</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">69</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.7</span>
+
+<span class="n">knn</span> <span class="o">=</span> <span class="n">k_nn_ac</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">toll</span> <span class="o">=</span> <span class="n">tolls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">fac</span><span class="p">,</span> <span class="n">axac</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_ac</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="c1">#fac.suptitle(&#39;$k =$ %d&#39;%knn)</span>
+<span class="n">idx_t</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">for</span> <span class="n">idx_g</span><span class="p">,</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gamma_ac</span><span class="p">):</span>
+    <span class="n">aux_th1</span> <span class="o">=</span> <span class="n">spread</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">_theta</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta_ac</span><span class="p">[</span><span class="mi">1</span><span class="p">])][:,</span> <span class="n">idx_t</span><span class="p">]</span>
+    <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">aux_th1</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                    <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">aux_th1</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">aux_th1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\theta = $ </span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">theta_ac</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">aux_th2</span> <span class="o">=</span> <span class="n">spread</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">_theta</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta_ac</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="p">[:,</span> <span class="n">idx_t</span><span class="p">]</span>
+    <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">aux_th2</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                    <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">aux_th2</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">aux_th2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\theta = $ </span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">theta_ac</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">10.5</span><span class="p">)</span>
+    <span class="c1">#axac[idx_t, idx_g].legend()</span>
+
+    <span class="k">if</span> <span class="n">idx_t</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\gamma = </span><span class="si">%1.1f</span><span class="s1">$ &#39;</span><span class="o">%</span><span class="p">(</span><span class="n">gamma</span><span class="p">))</span>
+        <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">6.5</span><span class="p">,</span> <span class="mi">85</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> ;&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">num_roi_constr</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">_theta0.05&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)]),</span>
+                         <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;dodgerblue&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+        <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">8.5</span><span class="p">,</span> <span class="mi">85</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">num_roi_constr</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">_theta0.00&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)]),</span>
+                         <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkorange&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+        <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">7.2</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="s1">&#39;parcels&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+        <span class="n">rect</span> <span class="o">=</span> <span class="n">patches</span><span class="o">.</span><span class="n">FancyBboxPatch</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">72</span><span class="p">),</span> <span class="mf">4.5</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span>
+                                  <span class="n">boxstyle</span><span class="o">=</span><span class="s1">&#39;round&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span>
+                                 <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;lightgray&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">idx_g</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span>
+            <span class="sa">r</span><span class="s1">&#39;Number of parcels ($\%$)&#39;</span><span class="p">,</span>
+                         <span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">axac</span><span class="p">[</span><span class="n">idx_g</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([])</span>
+
+<span class="n">axac</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span>
+            <span class="n">borderaxespad</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="n">fac</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s1">&#39;Number of intersecting atlas parcels&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+          <span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+
+<span class="n">gamma_tplot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="n">theta_tplot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">])</span>
+<span class="n">f_tg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">theta</span> <span class="o">*</span> <span class="p">(</span><span class="n">gamma_tplot</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">gamma_tplot</span><span class="p">))</span> \
+             <span class="k">for</span> <span class="n">theta</span> <span class="ow">in</span> <span class="n">theta_tplot</span><span class="p">])</span>
+
+<span class="n">colors_tplot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.9655</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.4828</span><span class="p">,</span> <span class="mf">0.8621</span><span class="p">])])</span>
+
+<span class="n">f_tplot</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">idx_t</span><span class="p">,</span> <span class="n">theta</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">theta_tplot</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_tplot</span><span class="p">,</span> <span class="n">f_tg</span><span class="p">[</span><span class="n">idx_t</span><span class="p">],</span>
+         <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\theta$ = </span><span class="si">%1.3f</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">theta</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors_tplot</span><span class="p">[</span><span class="n">idx_t</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\gamma$&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\theta$ $\frac{\gamma}{1-\gamma}$&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="n">f_tplot</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="sphx-glr-horizontal">
+<li><img src="../_images/sphx_glr_plot_3_structural_properties_003.png" srcset="../_images/sphx_glr_plot_3_structural_properties_003.png" alt="$\gamma = 1.0$ , $\gamma = 0.8$ , $\gamma = 0.6$" class = "sphx-glr-multi-img"/></li>
+<li><img src="../_images/sphx_glr_plot_3_structural_properties_004.png" srcset="../_images/sphx_glr_plot_3_structural_properties_004.png" alt="plot 3 structural properties" class = "sphx-glr-multi-img"/></li>
+</ul>
+<p>Plot 5. Spatial cohesion</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">Brain</span> <span class="o">=</span> <span class="n">get_brain_class</span><span class="p">()</span>
+
+<span class="n">knn_plot</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">gamma_plot</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">theta_plot</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">cart_coord</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">]</span>
+
+<span class="n">src</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">]</span>
+<span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;rr&#39;</span><span class="p">][</span><span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">]],</span>
+               <span class="n">src</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;rr&#39;</span><span class="p">][</span><span class="n">src</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">]]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">nvert</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">src</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">]</span>
+
+<span class="n">idx_vert</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">V</span> <span class="o">-</span> <span class="n">cart_coord</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="n">gamma_plot</span><span class="p">:</span>
+    <span class="n">target_file</span> <span class="o">=</span> <span class="n">string_target_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">subject</span><span class="p">,</span> <span class="n">knn_plot</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta_plot</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loading </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">target_file</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">target_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">aux_lf</span><span class="p">:</span>
+        <span class="n">flame_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">aux_lf</span><span class="p">)</span>
+    <span class="n">flame_labels</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">store_flame_labels</span><span class="p">(</span><span class="n">flame_data</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">subject</span><span class="p">)</span>
+
+    <span class="n">parcels_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nvert</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">ir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">]):</span>
+        <span class="n">parcels_vector</span><span class="p">[</span><span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">][</span><span class="n">ir</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ir</span>
+    <span class="n">sel_roi</span> <span class="o">=</span> <span class="n">parcels_vector</span><span class="p">[</span><span class="n">idx_vert</span><span class="p">]</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">sel_roi</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">brain</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">plot_flame_labels</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">flame_labels</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span>
+            <span class="n">subjects_dir</span><span class="p">,</span> <span class="n">surf</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.64</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
+            <span class="n">plot_region</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot_points</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_borders</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">brain</span><span class="o">.</span><span class="n">show_view</span><span class="p">(</span><span class="n">azimuth</span><span class="o">=</span><span class="mi">173</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span> <span class="mi">60</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="sphx-glr-horizontal">
+<li><img src="../_images/sphx_glr_plot_3_structural_properties_005.png" srcset="../_images/sphx_glr_plot_3_structural_properties_005.png" alt="plot 3 structural properties" class = "sphx-glr-multi-img"/></li>
+<li><img src="../_images/sphx_glr_plot_3_structural_properties_006.png" srcset="../_images/sphx_glr_plot_3_structural_properties_006.png" alt="plot 3 structural properties" class = "sphx-glr-multi-img"/></li>
+<li><img src="../_images/sphx_glr_plot_3_structural_properties_007.png" srcset="../_images/sphx_glr_plot_3_structural_properties_007.png" alt="plot 3 structural properties" class = "sphx-glr-multi-img"/></li>
+<li><img src="../_images/sphx_glr_plot_3_structural_properties_008.png" srcset="../_images/sphx_glr_plot_3_structural_properties_008.png" alt="plot 3 structural properties" class = "sphx-glr-multi-img"/></li>
+</ul>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.00_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.40_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.60_theta0.05.pkl
+Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma1.00_theta0.05.pkl
+</pre></div>
+</div>
+<p>Plot 7. Reduced source space on top of DK atlas</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">brain_redV</span> <span class="o">=</span> <span class="n">Brain</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">surf</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span>
+    <span class="n">background</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1">#   Superimpose anatomical regions</span>
+<span class="k">for</span> <span class="n">ir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)):</span>
+    <span class="n">brain_redV</span><span class="o">.</span><span class="n">add_label</span><span class="p">(</span><span class="n">label</span><span class="p">[</span><span class="n">ir</span><span class="p">],</span> <span class="n">hemi</span><span class="o">=</span><span class="n">label</span><span class="p">[</span><span class="n">ir</span><span class="p">]</span><span class="o">.</span><span class="n">hemi</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+
+<span class="c1">#  Superimpose centroids</span>
+<span class="n">megicparc</span><span class="o">.</span><span class="n">plot_flame_centroids</span><span class="p">(</span><span class="n">flame_data</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="p">,</span>
+                           <span class="n">brain_redV</span><span class="p">)</span>
+
+<span class="n">brain_redV</span><span class="o">.</span><span class="n">show_view</span><span class="p">(</span><span class="n">azimuth</span><span class="o">=</span><span class="mi">170</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+
+<span class="s2">&quot;&quot;</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_3_structural_properties_009.png" srcset="../_images/sphx_glr_plot_3_structural_properties_009.png" alt="plot 3 structural properties" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&#39;&#39;
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 25.771 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-3-structural-properties-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/0acb481bd00539db14ef2e1a483e183f/plot_3_structural_properties.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_3_structural_properties.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/e871357107d7cac57d9b0add0cf1c0d0/plot_3_structural_properties.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_3_structural_properties.py</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2023, Sara Sommariva.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+﻿:mod:`megicparc.functions`.compute_distance_matrix
+===============================================================
+
+.. currentmodule:: megicparc.functions
+
+.. autofunction:: compute_distance_matrix
+
+.. include:: megicparc.functions.compute_distance_matrix.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>

@@ -1,0 +1,12 @@
+﻿:mod:`megicparc.utils`.compute_auc
+===============================================
+
+.. currentmodule:: megicparc.utils
+
+.. autofunction:: compute_auc
+
+.. include:: megicparc.utils.compute_auc.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>

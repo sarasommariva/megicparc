@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Generate MEG informed cortical parcellations &#8212; megicparc 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="../_static/documentation_options.js?v=292eb321"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          megicparc</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../api.html">API</a></li>
+                <li><a href="../auto_examples/index.html">Examples</a></li>
+                <li><a href="index.html">Reproducing paper results</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/auto_paper/1_compute_parcs.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-auto-paper-1-compute-parcs-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code</p>
+</div>
+<section class="sphx-glr-example-title" id="generate-meg-informed-cortical-parcellations">
+<span id="sphx-glr-auto-paper-1-compute-parcs-py"></span><h1>Generate MEG informed cortical parcellations<a class="headerlink" href="#generate-meg-informed-cortical-parcellations" title="Link to this heading">¶</a></h1>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">from</span> <span class="nn">mne</span> <span class="kn">import</span> <span class="p">(</span><span class="n">read_forward_solution</span><span class="p">,</span> <span class="n">pick_types_forward</span><span class="p">,</span>
+                 <span class="n">convert_forward_solution</span><span class="p">,</span> <span class="n">read_labels_from_annot</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">megicparc</span> <span class="kn">import</span> <span class="n">compute_distance_matrix</span><span class="p">,</span> <span class="n">compute_parcellation</span>
+
+<span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;../data&#39;</span>
+<span class="n">subjects</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;k1_T1&#39;</span><span class="p">,</span> <span class="s1">&#39;k2_T1&#39;</span><span class="p">,</span> <span class="s1">&#39;k4_T1&#39;</span><span class="p">,</span> <span class="s1">&#39;k6_T1&#39;</span><span class="p">,</span> <span class="s1">&#39;k7_T1&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;CC110045&#39;</span><span class="p">,</span> <span class="s1">&#39;CC110182&#39;</span><span class="p">,</span> <span class="s1">&#39;CC110174&#39;</span><span class="p">,</span> <span class="s1">&#39;CC110126&#39;</span><span class="p">,</span> <span class="s1">&#39;CC110056&#39;</span><span class="p">]</span>
+
+<span class="n">subjects_dir</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;subjects_flame&#39;</span><span class="p">)</span>
+<span class="n">sensors_meg</span> <span class="o">=</span> <span class="s1">&#39;grad&#39;</span>
+<span class="n">string_lf</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;fwd_models&#39;</span><span class="p">,</span> <span class="s1">&#39;original_fwd&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">_meg_single_layer-fwd.fif&#39;</span><span class="p">)</span>
+
+<span class="n">gamma_tot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+<span class="n">knn_tot</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">]</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">parc</span> <span class="o">=</span> <span class="s1">&#39;aparc&#39;</span>
+
+<span class="n">folder_fl</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;results&#39;</span><span class="p">,</span> <span class="s1">&#39;parcellations&#39;</span><span class="p">)</span>
+<span class="n">string_target_file</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_fl</span><span class="p">,</span>
+                        <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">_flame_grad_k</span><span class="si">{:d}</span><span class="s1">_gamma</span><span class="si">{:1.2f}</span><span class="s1">_theta</span><span class="si">{:1.2f}</span><span class="s1">.pkl&#39;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">op</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">folder_fl</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">folder_fl</span><span class="p">)</span>
+
+<span class="c1"># In[] Initialization</span>
+<span class="k">for</span> <span class="n">idx_sub</span><span class="p">,</span> <span class="n">subject</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">subjects</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Working with </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">subject</span><span class="p">)</span>
+
+    <span class="c1"># In[]: Step 2. Load</span>
+    <span class="c1">#   2.a. Forward model</span>
+    <span class="n">path_lf</span> <span class="o">=</span> <span class="n">string_lf</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subject</span><span class="p">)</span>
+    <span class="n">fwd</span> <span class="o">=</span> <span class="n">read_forward_solution</span><span class="p">(</span><span class="n">path_lf</span><span class="p">)</span>
+    <span class="n">fwd</span> <span class="o">=</span> <span class="n">pick_types_forward</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">meg</span><span class="o">=</span><span class="n">sensors_meg</span><span class="p">,</span>
+                             <span class="n">eeg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ref_meg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="s1">&#39;bads&#39;</span><span class="p">)</span>
+    <span class="n">fwd</span> <span class="o">=</span> <span class="n">convert_forward_solution</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span>
+                                   <span class="n">surf_ori</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_cps</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#   2.b. Anatomical regions</span>
+    <span class="n">label_lh</span> <span class="o">=</span> <span class="n">read_labels_from_annot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">parc</span><span class="o">=</span><span class="n">parc</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;lh&#39;</span><span class="p">,</span>
+                                      <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+    <span class="n">label_rh</span> <span class="o">=</span> <span class="n">read_labels_from_annot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">parc</span><span class="o">=</span><span class="n">parc</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;rh&#39;</span><span class="p">,</span>
+                                      <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">label_lh</span> <span class="o">+</span> <span class="n">label_rh</span>
+
+    <span class="c1"># In[]: Step 3. Run flame</span>
+    <span class="k">for</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="n">gamma_tot</span><span class="p">:</span>
+        <span class="n">sort_dist</span> <span class="o">=</span> <span class="n">compute_distance_matrix</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span>
+                                            <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">knn</span> <span class="ow">in</span> <span class="n">knn_tot</span><span class="p">:</span>
+            <span class="n">target_file</span> <span class="o">=</span> <span class="n">string_target_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">subject</span><span class="p">,</span> <span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+            <span class="n">flame_data</span> <span class="o">=</span> <span class="n">compute_parcellation</span><span class="p">(</span><span class="n">sort_dist</span><span class="p">,</span> <span class="n">k_nn</span><span class="o">=</span><span class="n">knn</span><span class="p">)</span>
+            <span class="c1"># - Save</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saving </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">target_file</span><span class="p">)</span>
+            <span class="n">aux_f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">target_file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">flame_data</span><span class="p">,</span> <span class="n">aux_f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">aux_f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+            <span class="k">del</span> <span class="n">flame_data</span>
+        <span class="k">del</span> <span class="n">sort_dist</span>
+
+    <span class="k">if</span> <span class="n">subject</span> <span class="o">==</span> <span class="s1">&#39;k2_T1&#39;</span><span class="p">:</span>  <span class="c1"># For &#39;k2_T1&#39; we also compute parcellations for theta = 0</span>
+
+        <span class="n">theta_aux</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="n">gamma_tot</span><span class="p">:</span>
+            <span class="n">sort_dist</span> <span class="o">=</span> <span class="n">compute_distance_matrix</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span>
+                                                <span class="n">theta</span><span class="o">=</span><span class="n">theta_aux</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">knn</span> <span class="ow">in</span> <span class="n">knn_tot</span><span class="p">:</span>
+                <span class="n">target_file</span> <span class="o">=</span> <span class="n">string_target_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">subject</span><span class="p">,</span> <span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta_aux</span><span class="p">)</span>
+                <span class="n">flame_data</span> <span class="o">=</span> <span class="n">compute_parcellation</span><span class="p">(</span><span class="n">sort_dist</span><span class="p">,</span> <span class="n">k_nn</span><span class="o">=</span><span class="n">knn</span><span class="p">)</span>
+                <span class="c1"># - Save</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saving </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">target_file</span><span class="p">)</span>
+                <span class="n">aux_f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">target_file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+                <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">flame_data</span><span class="p">,</span> <span class="n">aux_f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">aux_f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+                <span class="k">del</span> <span class="n">flame_data</span>
+            <span class="k">del</span> <span class="n">sort_dist</span>
+</pre></div>
+</div>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-paper-1-compute-parcs-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/3a238687b8a351946eca7a1bceaaa364/1_compute_parcs.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">1_compute_parcs.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/a9e8640eefddf36616fb44bdc7b7fdb6/1_compute_parcs.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">1_compute_parcs.py</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2023, Sara Sommariva.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

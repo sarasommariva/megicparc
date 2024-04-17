@@ -1,0 +1,12 @@
+﻿:mod:`megicparc.functions`.compute_parcellation
+============================================================
+
+.. currentmodule:: megicparc.functions
+
+.. autofunction:: compute_parcellation
+
+.. include:: megicparc.functions.compute_parcellation.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>

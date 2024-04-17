@@ -1,0 +1,49 @@
+
+:orphan:
+
+.. _sphx_glr_auto_examples_sg_execution_times:
+
+
+Computation times
+=================
+**224:03.511** total execution time for 5 files **from auto_examples**:
+
+.. container::
+
+  .. raw:: html
+
+    <style scoped>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" class="init">
+    $(document).ready( function () {
+        $('table.sg-datatable').DataTable({order: [[1, 'desc']]});
+    } );
+    </script>
+
+  .. list-table::
+   :header-rows: 1
+   :class: table table-striped sg-datatable
+
+   * - Example
+     - Time
+     - Mem (MB)
+   * - :ref:`sphx_glr_auto_examples_plot_2_compute_parc.py` (``plot_2_compute_parc.py``)
+     - 202:25.035
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_1_generate_parc.py` (``plot_1_generate_parc.py``)
+     - 19:43.199
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_3_structural_properties.py` (``plot_3_structural_properties.py``)
+     - 01:25.771
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_5_experimental_MEG.py` (``plot_5_experimental_MEG.py``)
+     - 00:21.631
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_4_functional_properties.py` (``plot_4_functional_properties.py``)
+     - 00:07.874
+     - 0.0

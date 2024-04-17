@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Test of the MEG-informed parcellations on MEG experimental datasets &#8212; megicparc 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="../_static/documentation_options.js?v=292eb321"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Functional poperties of the MEG-informed parcellations" href="plot_4_functional_properties.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          megicparc</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../api.html">API</a></li>
+                <li><a href="index.html">Examples</a></li>
+                <li><a href="../auto_paper/index.html">Reproducing paper results</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/auto_examples/plot_5_experimental_MEG.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-5-experimental-meg-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code</p>
+</div>
+<section class="sphx-glr-example-title" id="test-of-the-meg-informed-parcellations-on-meg-experimental-datasets">
+<span id="sphx-glr-auto-examples-plot-5-experimental-meg-py"></span><h1>Test of the MEG-informed parcellations on MEG experimental datasets<a class="headerlink" href="#test-of-the-meg-informed-parcellations-on-meg-experimental-datasets" title="Link to this heading">¶</a></h1>
+<p>Import the required packages</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">mne</span> <span class="kn">import</span> <span class="p">(</span><span class="n">read_forward_solution</span><span class="p">,</span> <span class="n">pick_types_forward</span><span class="p">,</span>
+                 <span class="n">convert_forward_solution</span><span class="p">,</span> <span class="n">pick_types</span><span class="p">,</span>
+                 <span class="n">compute_covariance</span><span class="p">,</span> <span class="n">find_events</span><span class="p">,</span> <span class="n">Epochs</span><span class="p">,</span>
+                 <span class="n">SourceEstimate</span><span class="p">,</span> <span class="n">extract_label_time_course</span><span class="p">,</span>
+                 <span class="n">read_labels_from_annot</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">mne.io</span> <span class="kn">import</span> <span class="n">read_raw_fif</span>
+<span class="kn">from</span> <span class="nn">mne.datasets</span> <span class="kn">import</span> <span class="n">sample</span>
+<span class="kn">from</span> <span class="nn">mne.viz</span> <span class="kn">import</span> <span class="n">plot_source_estimates</span><span class="p">,</span> <span class="n">get_brain_class</span>
+
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">import</span> <span class="nn">megicparc</span>
+<span class="kn">from</span> <span class="nn">megicparc.utils</span> <span class="kn">import</span> <span class="n">read_dipole_locations</span><span class="p">,</span> <span class="n">compute_inv_op_rank</span>
+<span class="kn">from</span> <span class="nn">megicparc.viz</span> <span class="kn">import</span> <span class="n">plot_flame_labels</span><span class="p">,</span> <span class="n">plot_flame_centroids</span>
+</pre></div>
+</div>
+<p>Define input parameters for the flame algorithm running in megicperc</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">knn</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.4</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">sensors_meg</span> <span class="o">=</span> <span class="s1">&#39;grad&#39;</span>
+<span class="n">parc</span> <span class="o">=</span> <span class="s1">&#39;aparc&#39;</span>
+
+<span class="n">folder_fl</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;data_mne_sample&#39;</span><span class="p">)</span>
+<span class="n">string_target_file</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_fl</span><span class="p">,</span>
+                        <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">_flame_grad_k</span><span class="si">{:d}</span><span class="s1">_gamma</span><span class="si">{:1.2f}</span><span class="s1">_theta</span><span class="si">{:1.2f}</span><span class="s1">.pkl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Define input parameters for the flame algorithm running in megicperc</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">depth</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;dSPM&#39;</span>
+<span class="n">tmin_snr</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">tmax_snr</span> <span class="o">=</span> <span class="mf">0.15</span>
+<span class="n">tmin_res</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">tmax_res</span> <span class="o">=</span> <span class="mf">0.15</span>
+</pre></div>
+</div>
+<p>Load lead-field matrix and the anatomy-based parcellation</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">data_path</span><span class="p">()</span>
+<span class="n">subjects_dir</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;subjects&#39;</span><span class="p">)</span>
+<span class="n">subject</span> <span class="o">=</span> <span class="s1">&#39;sample&#39;</span>
+<span class="n">fwd_file</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;MEG&#39;</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="s1">&#39;sample_audvis-meg-eeg-oct-6-fwd.fif&#39;</span><span class="p">)</span>
+
+<span class="n">fwd</span> <span class="o">=</span> <span class="n">read_forward_solution</span><span class="p">(</span><span class="n">fwd_file</span><span class="p">)</span>
+<span class="n">fwd</span> <span class="o">=</span> <span class="n">pick_types_forward</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">meg</span><span class="o">=</span><span class="n">sensors_meg</span><span class="p">,</span> <span class="n">eeg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">ref_meg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="s1">&#39;bads&#39;</span><span class="p">)</span>
+<span class="n">fwd</span> <span class="o">=</span> <span class="n">convert_forward_solution</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">surf_ori</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">use_cps</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">label_lh</span> <span class="o">=</span> <span class="n">read_labels_from_annot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">parc</span><span class="o">=</span><span class="n">parc</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;lh&#39;</span><span class="p">,</span>
+                       <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+<span class="n">label_rh</span> <span class="o">=</span> <span class="n">read_labels_from_annot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">parc</span><span class="o">=</span><span class="n">parc</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;rh&#39;</span><span class="p">,</span>
+                    <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+<span class="n">label</span> <span class="o">=</span> <span class="n">label_lh</span> <span class="o">+</span> <span class="n">label_rh</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Reading forward solution from /u/29/sommars1/unix/mne_data/MNE-sample-data/MEG/sample/sample_audvis-meg-eeg-oct-6-fwd.fif...
+    Reading a source space...
+    Computing patch statistics...
+    Patch information added...
+    Distance information added...
+    [done]
+    Reading a source space...
+    Computing patch statistics...
+    Patch information added...
+    Distance information added...
+    [done]
+    2 source spaces read
+    Desired named matrix (kind = 3523) not available
+    Read MEG forward solution (7498 sources, 306 channels, free orientations)
+    Desired named matrix (kind = 3523) not available
+    Read EEG forward solution (7498 sources, 60 channels, free orientations)
+    Forward solutions combined: MEG, EEG
+    Source spaces transformed to the forward solution coordinate frame
+    203 out of 366 channels remain after picking
+    Average patch normals will be employed in the rotation to the local surface coordinates....
+    Converting to surface-based source orientations...
+    [done]
+Reading labels from parcellation...
+   read 34 labels from /u/29/sommars1/unix/mne_data/MNE-sample-data/subjects/sample/label/lh.aparc.annot
+Reading labels from parcellation...
+   read 34 labels from /u/29/sommars1/unix/mne_data/MNE-sample-data/subjects/sample/label/rh.aparc.annot
+</pre></div>
+</div>
+<p>Load MEG data and estimate noise covariance matrix</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load raw data</span>
+<span class="n">raw_fname</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s2">&quot;MEG&quot;</span><span class="p">,</span> <span class="s2">&quot;sample&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;sample_audvis_filt-0-40_raw.fif&quot;</span><span class="p">)</span>
+
+<span class="c1"># Compute evoked data</span>
+<span class="c1"># Ref: https://mne.tools/stable/auto_tutorials/inverse/30_mne_dspm_loreta.html#sphx-glr-auto-tutorials-inverse-30-mne-dspm-loreta-py</span>
+<span class="n">raw</span> <span class="o">=</span> <span class="n">read_raw_fif</span><span class="p">(</span><span class="n">raw_fname</span><span class="p">)</span>  <span class="c1"># already has an average reference</span>
+<span class="n">events</span> <span class="o">=</span> <span class="n">find_events</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">stim_channel</span><span class="o">=</span><span class="s2">&quot;STI 014&quot;</span><span class="p">)</span>
+
+<span class="n">event_id</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">aud_l</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">tmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.2</span>  <span class="c1"># start of each epoch (200ms before the trigger)</span>
+<span class="n">tmax</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># end of each epoch (500ms after the trigger)</span>
+<span class="n">raw</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;bads&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;MEG 2443&quot;</span><span class="p">,</span> <span class="s2">&quot;EEG 053&quot;</span><span class="p">]</span>
+<span class="n">baseline</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># means from the first instant to t = 0</span>
+<span class="n">reject</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">grad</span><span class="o">=</span><span class="mf">4000e-13</span><span class="p">,</span> <span class="n">mag</span><span class="o">=</span><span class="mf">4e-12</span><span class="p">,</span> <span class="n">eog</span><span class="o">=</span><span class="mf">150e-6</span><span class="p">)</span>
+
+<span class="n">epochs</span> <span class="o">=</span> <span class="n">Epochs</span><span class="p">(</span>
+    <span class="n">raw</span><span class="p">,</span>
+    <span class="n">events</span><span class="p">,</span>
+    <span class="n">event_id</span><span class="p">,</span>
+    <span class="n">tmin</span><span class="p">,</span>
+    <span class="n">tmax</span><span class="p">,</span>
+    <span class="n">proj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">picks</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;meg&quot;</span><span class="p">,</span> <span class="s2">&quot;eog&quot;</span><span class="p">),</span>
+    <span class="n">baseline</span><span class="o">=</span><span class="n">baseline</span><span class="p">,</span>
+    <span class="n">reject</span><span class="o">=</span><span class="n">reject</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">epochs</span><span class="o">.</span><span class="n">apply_baseline</span><span class="p">((</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">evoked</span> <span class="o">=</span> <span class="n">epochs</span><span class="o">.</span><span class="n">average</span><span class="p">()</span>
+<span class="n">picks_inv</span> <span class="o">=</span> <span class="n">pick_types</span><span class="p">(</span><span class="n">evoked</span><span class="o">.</span><span class="n">info</span><span class="p">,</span> <span class="n">meg</span><span class="o">=</span><span class="n">sensors_meg</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="s1">&#39;bads&#39;</span><span class="p">)</span>
+<span class="n">y_ev</span> <span class="o">=</span> <span class="n">evoked</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">picks_inv</span><span class="p">,</span> <span class="p">:]</span>
+
+<span class="c1"># Estimate covariance matrix</span>
+<span class="n">noise_cov</span> <span class="o">=</span> <span class="n">compute_covariance</span><span class="p">(</span>
+            <span class="n">epochs</span><span class="p">,</span> <span class="n">tmax</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;empirical&#39;</span><span class="p">])</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">noise_cov</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span><span class="n">picks_inv</span><span class="p">,</span> <span class="n">picks_inv</span><span class="p">)]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">epochs</span><span class="p">)</span>
+
+<span class="c1"># Estimate SNR and regularization parameter for the inverse operator</span>
+<span class="n">_</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+<span class="n">log_ratio_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+<span class="n">rank</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">log_ratio_s</span><span class="p">)</span>
+<span class="n">rank</span> <span class="o">=</span> <span class="n">rank</span> <span class="o">+</span> <span class="mi">1</span>
+
+<span class="n">ssv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span>
+<span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">ssv</span><span class="p">])),</span> <span class="n">V</span><span class="p">[</span><span class="n">ssv</span><span class="p">])</span>
+<span class="n">yW</span> <span class="o">=</span> <span class="n">W</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">y_ev</span><span class="p">)</span>
+<span class="n">est_snr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">yW</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">rank</span>
+<span class="n">mean_snr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">est_snr</span><span class="p">[</span>
+        <span class="p">(</span><span class="n">evoked</span><span class="o">.</span><span class="n">times</span><span class="o">&gt;=</span><span class="n">tmin_snr</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">evoked</span><span class="o">.</span><span class="n">times</span> <span class="o">&lt;=</span><span class="n">tmax_snr</span><span class="p">)])</span>
+<span class="n">lam</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">mean_snr</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;***************************************&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Estimated rank </span><span class="si">%2d</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">rank</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Estimated snr </span><span class="si">%2.2f</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">mean_snr</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Estimated lam </span><span class="si">%2.2f</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">lam</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Opening raw data file /u/29/sommars1/unix/mne_data/MNE-sample-data/MEG/sample/sample_audvis_filt-0-40_raw.fif...
+    Read a total of 4 projection items:
+        PCA-v1 (1 x 102)  idle
+        PCA-v2 (1 x 102)  idle
+        PCA-v3 (1 x 102)  idle
+        Average EEG reference (1 x 60)  idle
+    Range : 6450 ... 48149 =     42.956 ...   320.665 secs
+Ready.
+319 events found
+Event IDs: [ 1  2  3  4  5 32]
+Not setting metadata
+72 matching events found
+Setting baseline interval to [-0.19979521315838786, 0.0] s
+Applying baseline correction (mode: mean)
+Created an SSP operator (subspace dimension = 3)
+4 projection items activated
+Applying baseline correction (mode: mean)
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on MAG : [&#39;MEG 1711&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+NOTE: pick_channels() is a legacy function. New code should use inst.pick(...).
+Removing projector &lt;Projection | Average EEG reference, active : True, n_channels : 60&gt;
+Loading data for 72 events and 106 original time points ...
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on MAG : [&#39;MEG 1711&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+    Rejecting  epoch based on EOG : [&#39;EOG 061&#39;]
+17 bad epochs dropped
+Computing rank from data with rank=None
+    Using tolerance 2.8e-09 (2.2e-16 eps * 305 dim * 4.2e+04  max singular value)
+    Estimated rank (mag + grad): 302
+    MEG: rank 302 computed from 305 data channels with 3 projectors
+    Created an SSP operator (subspace dimension = 3)
+    Setting small MEG eigenvalues to zero (without PCA)
+Reducing data rank from 305 -&gt; 302
+Estimating covariance using EMPIRICAL
+Done.
+Number of samples used : 1705
+[done]
+***************************************
+Estimated rank 195
+Estimated snr 9.56
+Estimated lam 0.10
+</pre></div>
+</div>
+<p>Estimate source activity on the original source-space</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">L</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;sol&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">W_inv</span> <span class="o">=</span> <span class="n">compute_inv_op_rank</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span>
+                <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">)</span>
+<span class="n">x_full</span> <span class="o">=</span> <span class="n">W_inv</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">y_ev</span><span class="p">)</span>
+
+<span class="c1">#  Collapse activity on anatomical regions</span>
+<span class="n">stc_aux</span> <span class="o">=</span> <span class="n">SourceEstimate</span><span class="p">(</span><span class="n">x_full</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">],</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">]],</span>
+        <span class="n">tmin</span> <span class="o">=</span> <span class="n">evoked</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tstep</span> <span class="o">=</span> <span class="n">evoked</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">evoked</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">subject</span> <span class="o">=</span> <span class="n">subject</span><span class="p">)</span>
+<span class="n">x_an_mean</span> <span class="o">=</span> <span class="n">extract_label_time_course</span><span class="p">(</span><span class="n">stc_aux</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span>
+                        <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;mean_flip&#39;</span><span class="p">)</span>
+
+<span class="n">x_an_pca</span> <span class="o">=</span> <span class="n">extract_label_time_course</span><span class="p">(</span><span class="n">stc_aux</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span>
+                        <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;pca_flip&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Given rank = 195 - num eigenvalues = 195
+Extracting time courses for 68 labels (mode: mean_flip)
+Extracting time courses for 68 labels (mode: pca_flip)
+</pre></div>
+</div>
+<p>Estimate source activity on the reduced source-space defined by the
+centroid of the parcels</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">target_file</span> <span class="o">=</span> <span class="n">string_target_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loading </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">target_file</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">target_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">aux_lf</span><span class="p">:</span>
+    <span class="n">flame_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">aux_lf</span><span class="p">)</span>
+
+<span class="n">num_roi</span> <span class="o">=</span> <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">]</span>
+
+<span class="n">L_red</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;sol&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][:,</span> <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids_id&#39;</span><span class="p">]]</span>
+<span class="n">W_red</span> <span class="o">=</span> <span class="n">compute_inv_op_rank</span><span class="p">(</span><span class="n">L_red</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span>
+                <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">)</span>
+<span class="n">x_fl</span> <span class="o">=</span> <span class="n">W_red</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">y_ev</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;***************************************&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of MEG-informed parcels=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">num_roi</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Loading ../data/data_mne_sample/sample_flame_grad_k30_gamma0.40_theta0.05.pkl
+Given rank = 195 - num eigenvalues = 195
+***************************************
+Number of MEG-informed parcels=75
+</pre></div>
+</div>
+<p>Plot source estimated on full source-space</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">vertices_plot</span> <span class="o">=</span> <span class="p">[</span><span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">],</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">]]</span>
+<span class="n">flame_labels</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">store_flame_labels</span><span class="p">(</span>
+                        <span class="n">flame_data</span><span class="p">,</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">],</span> <span class="n">subject</span><span class="p">)</span>
+
+<span class="n">nv_lh</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">]</span>
+<span class="n">times</span> <span class="o">=</span> <span class="n">evoked</span><span class="o">.</span><span class="n">times</span>
+<span class="n">aux_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">times</span> <span class="o">&gt;</span> <span class="n">tmin_res</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">times</span> <span class="o">&lt;</span> <span class="n">tmax_res</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">t_peak_lh</span> <span class="o">=</span> <span class="n">aux_t</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_full</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nv_lh</span><span class="p">,</span> <span class="n">aux_t</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))]</span>
+<span class="n">t_peak_rh</span> <span class="o">=</span> <span class="n">aux_t</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_full</span><span class="p">[</span><span class="n">nv_lh</span><span class="p">:,</span> <span class="n">aux_t</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))]</span>
+
+
+<span class="n">Brain</span> <span class="o">=</span> <span class="n">get_brain_class</span><span class="p">()</span>
+<span class="n">x_full_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x_full</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">x_full_norm</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nv_lh</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_full</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nv_lh</span><span class="p">,</span> <span class="n">t_peak_lh</span><span class="p">])</span> \
+                            <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_full</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nv_lh</span><span class="p">,</span> <span class="n">t_peak_lh</span><span class="p">]))</span>
+<span class="n">x_full_norm</span><span class="p">[</span><span class="n">nv_lh</span><span class="p">:]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_full</span><span class="p">[</span><span class="n">nv_lh</span><span class="p">:,</span> <span class="n">t_peak_rh</span><span class="p">])</span> \
+                            <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_full</span><span class="p">[</span><span class="n">nv_lh</span><span class="p">:,</span> <span class="n">t_peak_rh</span><span class="p">]))</span>
+
+<span class="n">stc_full</span> <span class="o">=</span> <span class="n">SourceEstimate</span><span class="p">(</span><span class="n">x_full_norm</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">vertices_plot</span><span class="p">,</span>
+                          <span class="n">tmin</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tstep</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">)</span>
+
+<span class="n">brain</span> <span class="o">=</span> <span class="n">plot_source_estimates</span><span class="p">(</span><span class="n">stc_full</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span>
+            <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="n">foreground</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">time_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time_viewer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">clim</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;kind&#39;</span> <span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]},</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">650</span><span class="p">,</span> <span class="mi">650</span><span class="p">))</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">show_view</span><span class="p">(</span><span class="n">azimuth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.13</span><span class="p">,</span> <span class="s1">&#39;Time = </span><span class="si">%0.3f</span><span class="s1"> s&#39;</span><span class="o">%</span><span class="n">times</span><span class="p">[</span><span class="n">t_peak_rh</span><span class="p">],</span>
+               <span class="n">font_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">justification</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+<span class="n">brain2</span> <span class="o">=</span> <span class="n">plot_source_estimates</span><span class="p">(</span><span class="n">stc_full</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span>
+            <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="n">foreground</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">time_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time_viewer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">clim</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;kind&#39;</span> <span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]},</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">650</span><span class="p">,</span> <span class="mi">650</span><span class="p">))</span>
+<span class="n">brain2</span><span class="o">.</span><span class="n">show_view</span><span class="p">(</span><span class="n">azimuth</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span><span class="n">distance</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span>
+<span class="n">brain2</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.13</span><span class="p">,</span> <span class="s1">&#39;Time = </span><span class="si">%0.3f</span><span class="s1"> s&#39;</span><span class="o">%</span><span class="n">times</span><span class="p">[</span><span class="n">t_peak_lh</span><span class="p">],</span>
+               <span class="n">font_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">justification</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="sphx-glr-horizontal">
+<li><img src="../_images/sphx_glr_plot_5_experimental_MEG_001.png" srcset="../_images/sphx_glr_plot_5_experimental_MEG_001.png" alt="plot 5 experimental MEG" class = "sphx-glr-multi-img"/></li>
+<li><img src="../_images/sphx_glr_plot_5_experimental_MEG_002.png" srcset="../_images/sphx_glr_plot_5_experimental_MEG_002.png" alt="plot 5 experimental MEG" class = "sphx-glr-multi-img"/></li>
+</ul>
+<p>Plot Source estimation on the reduces source-space</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">nf_lh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids_id&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">nv_lh</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">t_peak_lh_fl</span> <span class="o">=</span> <span class="n">aux_t</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_fl</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nf_lh</span><span class="p">,</span> <span class="n">aux_t</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))]</span>
+<span class="n">t_peak_rh_fl</span> <span class="o">=</span> <span class="n">aux_t</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_fl</span><span class="p">[</span><span class="n">nf_lh</span><span class="p">:,</span> <span class="n">aux_t</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))]</span>
+<span class="n">peak_fl_lh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_fl</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nf_lh</span><span class="p">,</span> <span class="n">t_peak_lh_fl</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">peak_fl_rh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_fl</span><span class="p">[</span><span class="n">nf_lh</span><span class="p">:,</span> <span class="n">t_peak_rh_fl</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">nf_lh</span>
+
+
+<span class="n">idx_fl</span> <span class="o">=</span> <span class="p">[</span><span class="n">peak_fl_lh</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">peak_fl_rh</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">brain_fl</span> <span class="o">=</span> <span class="n">Brain</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">surf</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">650</span><span class="p">,</span> <span class="mi">650</span><span class="p">))</span>
+<span class="n">plot_flame_labels</span><span class="p">(</span><span class="n">idx_fl</span><span class="p">,</span> <span class="n">flame_labels</span><span class="p">,</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">],</span>
+            <span class="n">subject</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.64</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="n">brain</span><span class="o">=</span><span class="n">brain_fl</span><span class="p">)</span>
+<span class="n">plot_flame_centroids</span><span class="p">(</span><span class="n">flame_data</span><span class="p">,</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">],</span> <span class="n">subject</span><span class="p">,</span>
+            <span class="n">subjects_dir</span><span class="p">,</span> <span class="n">brain</span><span class="o">=</span><span class="n">brain_fl</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mf">0.65</span><span class="p">)</span>
+<span class="n">brain_fl</span><span class="o">.</span><span class="n">show_view</span><span class="p">(</span><span class="n">azimuth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+<span class="n">brain_fl</span><span class="o">.</span><span class="n">show_view</span><span class="p">(</span><span class="n">azimuth</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+
+<span class="s2">&quot;&quot;</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_5_experimental_MEG_003.png" srcset="../_images/sphx_glr_plot_5_experimental_MEG_003.png" alt="plot 5 experimental MEG" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&#39;&#39;
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 21.631 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-5-experimental-meg-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/f9ed53a20fdb7a8f4346d3862ad12699/plot_5_experimental_MEG.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_5_experimental_MEG.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/f1042252c606cb8dfb196de0c408621e/plot_5_experimental_MEG.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_5_experimental_MEG.py</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2023, Sara Sommariva.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

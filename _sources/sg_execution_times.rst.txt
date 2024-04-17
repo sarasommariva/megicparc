@@ -1,0 +1,64 @@
+
+:orphan:
+
+.. _sphx_glr_sg_execution_times:
+
+
+Computation times
+=================
+**224:03.511** total execution time for 10 files **from all galleries**:
+
+.. container::
+
+  .. raw:: html
+
+    <style scoped>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" class="init">
+    $(document).ready( function () {
+        $('table.sg-datatable').DataTable({order: [[1, 'desc']]});
+    } );
+    </script>
+
+  .. list-table::
+   :header-rows: 1
+   :class: table table-striped sg-datatable
+
+   * - Example
+     - Time
+     - Mem (MB)
+   * - :ref:`sphx_glr_auto_examples_plot_2_compute_parc.py` (``../examples/plot_2_compute_parc.py``)
+     - 202:25.035
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_1_generate_parc.py` (``../examples/plot_1_generate_parc.py``)
+     - 19:43.199
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_3_structural_properties.py` (``../examples/plot_3_structural_properties.py``)
+     - 01:25.771
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_5_experimental_MEG.py` (``../examples/plot_5_experimental_MEG.py``)
+     - 00:21.631
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_4_functional_properties.py` (``../examples/plot_4_functional_properties.py``)
+     - 00:07.874
+     - 0.0
+   * - :ref:`sphx_glr_auto_paper_1_compute_parcs.py` (``../code_paper/1_compute_parcs.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_auto_paper_3_analysis_and_vis_auditory_data.py` (``../code_paper/3_analysis_and_vis_auditory_data.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_auto_paper_vis_fc_properties.py` (``../code_paper/vis_fc_properties.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_auto_paper_vis_functional_properties.py` (``../code_paper/vis_functional_properties.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_auto_paper_vis_structural_properties.py` (``../code_paper/vis_structural_properties.py``)
+     - 00:00.000
+     - 0.0

@@ -1,0 +1,12 @@
+﻿:mod:`megicparc.functions`.compute_anatomical_mask
+===============================================================
+
+.. currentmodule:: megicparc.functions
+
+.. autofunction:: compute_anatomical_mask
+
+.. include:: megicparc.functions.compute_anatomical_mask.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>

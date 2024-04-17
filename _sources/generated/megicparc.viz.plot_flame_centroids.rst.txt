@@ -1,0 +1,12 @@
+﻿:mod:`megicparc.viz`.plot_flame_centroids
+======================================================
+
+.. currentmodule:: megicparc.viz
+
+.. autofunction:: plot_flame_centroids
+
+.. include:: megicparc.viz.plot_flame_centroids.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>

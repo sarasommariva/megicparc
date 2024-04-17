@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Functional properties of the MEG-informed parcellation &#8212; megicparc 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="../_static/documentation_options.js?v=292eb321"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          megicparc</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../api.html">API</a></li>
+                <li><a href="../auto_examples/index.html">Examples</a></li>
+                <li><a href="index.html">Reproducing paper results</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/auto_paper/vis_functional_properties.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-auto-paper-vis-functional-properties-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code</p>
+</div>
+<section class="sphx-glr-example-title" id="functional-properties-of-the-meg-informed-parcellation">
+<span id="sphx-glr-auto-paper-vis-functional-properties-py"></span><h1>Functional properties of the MEG-informed parcellation<a class="headerlink" href="#functional-properties-of-the-meg-informed-parcellation" title="Link to this heading">¶</a></h1>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">from</span> <span class="nn">mne</span> <span class="kn">import</span> <span class="p">(</span><span class="n">read_forward_solution</span><span class="p">,</span> <span class="n">pick_types_forward</span><span class="p">,</span>
+                 <span class="n">convert_forward_solution</span><span class="p">,</span> <span class="n">read_labels_from_annot</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">import</span> <span class="nn">megicparc</span>
+<span class="kn">from</span> <span class="nn">megicparc.utils</span> <span class="kn">import</span> <span class="n">compute_inv_op_rank</span><span class="p">,</span> <span class="n">collapse_RM</span>
+</pre></div>
+</div>
+<p>In[]: Step 1. Define general parameters</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;../data&#39;</span>
+<span class="n">path_fig</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;figures&#39;</span><span class="p">)</span>
+<span class="n">subjects_dir</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;subjects_flame&#39;</span><span class="p">)</span>
+<span class="n">subjects</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;k1_T1&#39;</span><span class="p">,</span> <span class="s1">&#39;k2_T1&#39;</span><span class="p">,</span> <span class="s1">&#39;k4_T1&#39;</span><span class="p">,</span> <span class="s1">&#39;k6_T1&#39;</span><span class="p">,</span> <span class="s1">&#39;k7_T1&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;CC110045&#39;</span><span class="p">,</span> <span class="s1">&#39;CC110182&#39;</span><span class="p">,</span> <span class="s1">&#39;CC110174&#39;</span><span class="p">,</span> <span class="s1">&#39;CC110126&#39;</span><span class="p">,</span> <span class="s1">&#39;CC110056&#39;</span><span class="p">]</span>
+<span class="n">sensors_meg</span> <span class="o">=</span> <span class="s1">&#39;grad&#39;</span>
+<span class="n">string_lf</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;fwd_models&#39;</span><span class="p">,</span> <span class="s1">&#39;original_fwd&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">_meg_single_layer-fwd.fif&#39;</span><span class="p">)</span>
+
+<span class="n">gamma_tot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+<span class="n">knn_tot</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">]</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">parc</span> <span class="o">=</span> <span class="s1">&#39;aparc&#39;</span>
+
+<span class="n">snr</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">lam</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">snr</span>
+<span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;dSPM&#39;</span> <span class="c1"># dSPM or MNE or sLORETA</span>
+<span class="n">depth</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">mode_labels</span> <span class="o">=</span> <span class="s1">&#39;mean_flip&#39;</span>
+
+<span class="n">folder_fl</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;results&#39;</span><span class="p">,</span> <span class="s1">&#39;./parcellations&#39;</span><span class="p">)</span>
+<span class="n">string_target_file</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_fl</span><span class="p">,</span>
+                        <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">_flame_grad_k</span><span class="si">{:d}</span><span class="s1">_gamma</span><span class="si">{:1.2f}</span><span class="s1">_theta</span><span class="si">{:1.2f}</span><span class="s1">.pkl&#39;</span><span class="p">)</span>
+
+<span class="c1"># In[] Initialization</span>
+<span class="n">eucl_errors_full</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">eucl_errors</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span> <span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> \
+    <span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)</span> <span class="k">for</span> <span class="n">knn</span> <span class="ow">in</span> <span class="n">knn_tot</span> <span class="k">for</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="n">gamma_tot</span><span class="p">]}</span>
+
+<span class="n">correct_roi_an</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">subjects</span><span class="p">))</span>
+<span class="n">correct_roi_an_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">subjects</span><span class="p">))</span>
+<span class="n">correct_roi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">subjects</span><span class="p">)))</span>
+<span class="n">correct_roi_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">subjects</span><span class="p">)))</span>
+
+<span class="n">dist_index_an</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">subjects</span><span class="p">))</span>
+<span class="n">dist_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">subjects</span><span class="p">)))</span>
+
+<span class="c1"># +</span>
+<span class="k">for</span> <span class="n">idx_sub</span><span class="p">,</span> <span class="n">subject</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">subjects</span><span class="p">):</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Working with </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">subject</span><span class="p">)</span>
+
+<span class="c1"># In[]: Step 2. Load</span>
+<span class="c1">#   2.a. Forward model</span>
+    <span class="n">path_lf</span> <span class="o">=</span> <span class="n">string_lf</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subject</span><span class="p">)</span>
+    <span class="n">fwd</span> <span class="o">=</span> <span class="n">read_forward_solution</span><span class="p">(</span><span class="n">path_lf</span><span class="p">)</span>
+    <span class="n">fwd</span> <span class="o">=</span> <span class="n">pick_types_forward</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">meg</span><span class="o">=</span><span class="n">sensors_meg</span><span class="p">,</span>
+                <span class="n">eeg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ref_meg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="s1">&#39;bads&#39;</span><span class="p">)</span>
+    <span class="n">fwd</span> <span class="o">=</span> <span class="n">convert_forward_solution</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span>
+                <span class="n">surf_ori</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_cps</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#   2.b. Anatomical regions</span>
+    <span class="n">label_lh</span> <span class="o">=</span> <span class="n">read_labels_from_annot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">parc</span><span class="o">=</span><span class="n">parc</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;lh&#39;</span><span class="p">,</span>
+                           <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+    <span class="n">label_rh</span> <span class="o">=</span> <span class="n">read_labels_from_annot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">parc</span><span class="o">=</span><span class="n">parc</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;rh&#39;</span><span class="p">,</span>
+                        <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">label_lh</span> <span class="o">+</span> <span class="n">label_rh</span>
+
+    <span class="c1">#   2.c. Parameters for inverse modeling</span>
+    <span class="n">n_vert</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">]</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;sol&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">L</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span> <span class="o">/</span> <span class="n">snr</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="c1"># In[]: Step 3. Analysis with anatomical regions.</span>
+    <span class="n">proj_anrois</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">labels_to_array</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">proj_anrois</span><span class="p">[</span><span class="s1">&#39;outliers&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">aux_num_roi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">proj_anrois</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">aux_num_roi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">proj_anrois</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">])</span>
+
+<span class="c1">#       3.1. Source estimation and localization error on full source space</span>
+    <span class="n">W_full</span> <span class="o">=</span> <span class="n">compute_inv_op_rank</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span>
+                        <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">R_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W_full</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+    <span class="n">peak_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">R_full</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">ee_full</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">compute_localization_error</span><span class="p">(</span><span class="n">peak_full</span><span class="p">,</span>
+                                     <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert</span><span class="p">),</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">])</span>
+    <span class="n">eucl_errors_full</span> <span class="o">+=</span> <span class="n">ee_full</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+<span class="c1">#       3.2. RM on anatomical regions and related evaluation criteria</span>
+    <span class="n">R_an</span> <span class="o">=</span> <span class="n">collapse_RM</span><span class="p">(</span><span class="n">R_full</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">],</span> <span class="n">mode_labels</span><span class="p">)</span>
+
+    <span class="n">peak_c_an</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">R_an</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">true_c_an</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">membership2vector</span><span class="p">(</span>
+                        <span class="n">proj_anrois</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">][:</span><span class="n">aux_num_roi</span><span class="p">],</span> <span class="n">n_vert</span><span class="p">)</span>
+    <span class="n">correct_roi_an</span><span class="p">[</span><span class="n">idx_sub</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">true_c_an</span> <span class="o">==</span> <span class="n">peak_c_an</span><span class="p">)</span><span class="o">/</span><span class="n">n_vert</span><span class="o">*</span><span class="mi">100</span>
+    <span class="n">correct_roi_an_full</span><span class="p">[</span><span class="n">idx_sub</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">true_c_an</span><span class="p">[</span><span class="n">peak_full</span><span class="p">]</span> <span class="o">==</span> <span class="n">peak_c_an</span><span class="p">)</span> \
+                                    <span class="o">/</span><span class="n">n_vert</span><span class="o">*</span><span class="mi">100</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">dist_index_an</span><span class="p">[</span><span class="n">idx_sub</span><span class="p">]</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">compute_distinguishability_index</span><span class="p">(</span>
+                        <span class="n">R_an</span><span class="p">,</span> <span class="n">proj_anrois</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">],</span> <span class="n">aux_num_roi</span><span class="p">)</span>
+
+<span class="c1"># In[]: Step 4. Analysis with meg-informed parcels</span>
+    <span class="k">for</span> <span class="n">idx_g</span><span class="p">,</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+
+            <span class="n">target_file</span> <span class="o">=</span> <span class="n">string_target_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">subject</span><span class="p">,</span> <span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loading </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">target_file</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">target_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">aux_lf</span><span class="p">:</span>
+                <span class="n">flame_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">aux_lf</span><span class="p">)</span>
+
+            <span class="c1"># 4.1. Compute RMs</span>
+            <span class="n">L_fl</span> <span class="o">=</span> <span class="n">L</span><span class="p">[:,</span> <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids_id&#39;</span><span class="p">]]</span>
+            <span class="n">W_fl</span> <span class="o">=</span> <span class="n">compute_inv_op_rank</span><span class="p">(</span><span class="n">L_fl</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span>
+                                     <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+            <span class="n">R_fl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W_fl</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+
+            <span class="n">peak_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">R_fl</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="c1"># 4.2. Compute localization errors</span>
+            <span class="n">ee</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">compute_localization_error</span><span class="p">(</span><span class="n">peak_c</span><span class="p">,</span>
+                                    <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids_id&#39;</span><span class="p">],</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">])</span>
+            <span class="n">eucl_errors</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)]</span> <span class="o">+=</span> <span class="n">ee</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+
+            <span class="c1"># 4.3. Correctly identified regions</span>
+            <span class="n">true_c</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">membership2vector</span><span class="p">(</span>
+                     <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">][:</span><span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">]],</span> <span class="n">n_vert</span><span class="p">)</span>
+            <span class="n">correct_roi</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">,</span> <span class="n">idx_sub</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">true_c</span> <span class="o">==</span> <span class="n">peak_c</span><span class="p">)</span><span class="o">/</span><span class="n">n_vert</span><span class="o">*</span><span class="mi">100</span>
+            <span class="n">correct_roi_full</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">,</span> <span class="n">idx_sub</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">true_c</span><span class="p">[</span><span class="n">peak_full</span><span class="p">]</span> <span class="o">==</span> <span class="n">peak_c</span><span class="p">)</span><span class="o">/</span><span class="n">n_vert</span><span class="o">*</span><span class="mi">100</span>
+
+            <span class="c1"># 4.4. compute DI</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">DI</span> <span class="o">=</span> <span class="n">megicparc</span><span class="o">.</span><span class="n">compute_distinguishability_index</span><span class="p">(</span>
+                    <span class="n">R_fl</span><span class="p">,</span> <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;parcel&#39;</span><span class="p">],</span> <span class="n">flame_data</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">])</span>
+            <span class="n">dist_index</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">,</span> <span class="n">idx_sub</span><span class="p">]</span> <span class="o">=</span> <span class="n">DI</span>
+
+            <span class="k">del</span> <span class="n">flame_data</span>
+</pre></div>
+</div>
+<p>In[]: Step 5. Averages</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">Ns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">subjects</span><span class="p">)</span>
+
+<span class="c1"># 5.1. Anatomic parcels</span>
+<span class="n">aux_ee</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">eucl_errors_full</span><span class="p">)</span>
+<span class="n">eucl_err_full_ave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">aux_ee</span><span class="p">)</span>
+<span class="n">eucl_err_full_sem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">aux_ee</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">aux_ee</span><span class="p">))</span>
+
+<span class="n">correct_roi_an_ave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">correct_roi_an</span><span class="p">)</span>
+<span class="n">correct_roi_an_sem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">correct_roi_an</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Ns</span><span class="p">)</span>
+
+<span class="n">correct_roi_an_full_ave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">correct_roi_an_full</span><span class="p">)</span>
+<span class="n">correct_roi_an_full_sem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">correct_roi_an_full</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Ns</span><span class="p">)</span>
+
+<span class="n">dist_index_an_ave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dist_index_an</span><span class="p">)</span>
+<span class="n">dist_index_an_sem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">dist_index_an</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Ns</span><span class="p">)</span>
+
+<span class="c1"># 5.2. MEG-informed parcels</span>
+<span class="n">correct_roi_ave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">correct_roi</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">correct_roi_sem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">correct_roi</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Ns</span><span class="p">)</span>
+
+<span class="n">correct_roi_full_ave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">correct_roi_full</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">correct_roi_full_sem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">correct_roi_full</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Ns</span><span class="p">)</span>
+
+<span class="n">dist_index_ave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dist_index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">dist_index_sem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">dist_index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Ns</span><span class="p">)</span>
+
+<span class="n">eucl_err_ave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)))</span>
+<span class="n">eucl_err_sem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)))</span>
+
+<span class="k">for</span> <span class="n">idx_g</span><span class="p">,</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+
+        <span class="n">aux_ee</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">eucl_errors</span><span class="p">[</span><span class="s1">&#39;k</span><span class="si">%d</span><span class="s1">_gamma</span><span class="si">%1.2f</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">knn</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)])</span>
+        <span class="n">eucl_err_ave</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">aux_ee</span><span class="p">)</span>
+        <span class="n">eucl_err_sem</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">aux_ee</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">aux_ee</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>In[]: Step 6. Statistical test</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 6.1. Distinguishability index</span>
+<span class="n">di_t_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)))</span>
+<span class="n">di_p_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)))</span>
+
+<span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">idx_g</span><span class="p">,</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">):</span>
+
+        <span class="p">[</span><span class="n">aux_t</span><span class="p">,</span> <span class="n">aux_p</span><span class="p">]</span><span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">ttest_rel</span><span class="p">(</span><span class="n">dist_index</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">,</span> <span class="p">:],</span>
+                                        <span class="n">dist_index_an</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s1">&#39;greater&#39;</span><span class="p">)</span>
+        <span class="n">di_t_scores</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">]</span> <span class="o">=</span> <span class="n">aux_t</span>
+        <span class="n">di_p_values</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="n">idx_g</span><span class="p">]</span> <span class="o">=</span> <span class="n">aux_p</span>
+</pre></div>
+</div>
+<p>In[]: Step 7. Plot</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1">#plt.rc(&#39;text.latex&#39;, preamble=r&#39;\usepackage{color}&#39;)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">22</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.grid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;lines.linewidth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;errorbar.capsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">3.5</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.figsize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;patch.force_edgecolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+                  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+                  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.9655</span><span class="p">,</span> <span class="mi">1</span><span class="p">])])</span>
+</pre></div>
+</div>
+<p>7.1. Euclidean localization error</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">f_ee</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span> <span class="n">eucl_err_full_ave</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)),</span>
+             <span class="n">yerr</span><span class="o">=</span><span class="n">eucl_err_full_sem</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)),</span>
+             <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;k--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;full source-space&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span>
+                 <span class="n">eucl_err_ave</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span> <span class="n">yerr</span><span class="o">=</span><span class="n">eucl_err_sem</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span>
+                 <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$k$ = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">knn</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">idx_k</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Weight of the spatial distances&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Localization error (mm)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;dSPM&#39;</span><span class="p">:</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">27</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)</span>
+<span class="n">f_ee</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mf">6.5</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">f_ee</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_fig</span><span class="p">,</span> <span class="s1">&#39;eucl_loc_err_</span><span class="si">%s</span><span class="s1">.png&#39;</span><span class="o">%</span><span class="n">method</span><span class="p">))</span>
+
+<span class="c1"># 7.2. Percentage of corrected identified regions</span>
+<span class="n">f_corr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span>
+       <span class="n">correct_roi_ave</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span> <span class="n">yerr</span><span class="o">=</span><span class="n">correct_roi_sem</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span>
+       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$k$ = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">knn</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">idx_k</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span>
+   <span class="n">correct_roi_an_ave</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)),</span>
+   <span class="n">yerr</span><span class="o">=</span><span class="n">correct_roi_an_sem</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)),</span>
+   <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;k--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;DK&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Weight of the spatial distances&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Number of source locations ($\%$)&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">70</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)</span>
+<span class="n">f_corr</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mf">6.5</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">f_corr</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_fig</span><span class="p">,</span> <span class="s1">&#39;corrected_regions_</span><span class="si">%s</span><span class="s1">.png&#39;</span><span class="o">%</span><span class="n">method</span><span class="p">))</span>
+
+
+<span class="n">f_corr_full</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">ax_corr_full</span> <span class="o">=</span> <span class="n">f_corr_full</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+    <span class="n">ax_corr_full</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span>
+       <span class="n">correct_roi_full_ave</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span> <span class="n">yerr</span><span class="o">=</span><span class="n">correct_roi_full_sem</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span>
+       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$k$ = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">knn</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">idx_k</span><span class="p">])</span>
+<span class="n">ax_corr_full</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span>
+   <span class="n">correct_roi_an_full_ave</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)),</span>
+   <span class="n">yerr</span><span class="o">=</span><span class="n">correct_roi_an_full_sem</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)),</span>
+   <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;k--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;DK&#39;</span><span class="p">)</span>
+<span class="n">ax_corr_full</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Weight of the spatial distances&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">ax_corr_full</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)</span>
+<span class="n">ax_corr_full</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Number of source locations ($\%$)&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">ax_corr_full</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">70</span><span class="p">)</span>
+<span class="n">ax_corr_full</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)</span>
+<span class="n">f_corr_full</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mf">6.5</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">f_corr_full</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_fig</span><span class="p">,</span> <span class="s1">&#39;corrected_regions_</span><span class="si">%s</span><span class="s1">_full.png&#39;</span><span class="o">%</span><span class="n">method</span><span class="p">))</span>
+
+<span class="n">label_params</span> <span class="o">=</span> <span class="n">ax_corr_full</span><span class="o">.</span><span class="n">get_legend_handles_labels</span><span class="p">()</span>
+<span class="n">figl</span><span class="p">,</span> <span class="n">axl</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">axl</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">axl</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="o">*</span><span class="n">label_params</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">prop</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span><span class="mi">12</span><span class="p">},</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">figl</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="n">figl</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_fig</span><span class="p">,</span> <span class="s1">&#39;loc_err_legend.png&#39;</span><span class="p">))</span>
+
+<span class="c1"># 7.3. Distinhuishability index</span>
+<span class="n">_aux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.005</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">])</span>
+<span class="n">f_DI</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">gamma_tot</span><span class="o">+</span><span class="n">_aux</span><span class="p">[</span><span class="n">idx_k</span><span class="p">],</span> <span class="n">dist_index_ave</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span>
+                 <span class="n">yerr</span><span class="o">=</span><span class="n">dist_index_sem</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span>
+                 <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$k$ = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">knn</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">idx_k</span><span class="p">],</span>
+                 <span class="n">zorder</span><span class="o">=</span><span class="n">idx_k</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span>
+         <span class="n">dist_index_an_ave</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)),</span>
+         <span class="n">yerr</span><span class="o">=</span><span class="n">dist_index_an_sem</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)),</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;k--&#39;</span><span class="p">,</span>
+         <span class="n">label</span><span class="o">=</span><span class="s1">&#39;DK&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">1.05</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Weight of the spatial distances&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Distinguishability index&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">)</span>
+
+<span class="n">f_DI</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="n">f_DI</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_fig</span><span class="p">,</span> <span class="s1">&#39;dist_index_</span><span class="si">%s</span><span class="s1">.png&#39;</span><span class="o">%</span><span class="n">method</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Additional plots
+AP1. Statistical test</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">f_test</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">idx_k</span><span class="p">,</span> <span class="n">knn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">knn_tot</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_tot</span><span class="p">,</span> <span class="n">di_p_values</span><span class="p">[</span><span class="n">idx_k</span><span class="p">,</span> <span class="p">:],</span>
+                 <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$k$ = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">knn</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">idx_k</span><span class="p">],</span>
+                 <span class="n">zorder</span><span class="o">=</span><span class="n">idx_k</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Weight of the spatial distances&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;p value&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">)</span>
+
+<span class="n">f_test</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="n">f_test</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_fig</span><span class="p">,</span> <span class="s1">&#39;dist_index_</span><span class="si">%s</span><span class="s1">_ttest.png&#39;</span><span class="o">%</span><span class="n">method</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">di_p_values</span><span class="o">&lt;</span><span class="mf">0.001</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">di_p_values</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-paper-vis-functional-properties-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/249a432b07f234dcc49c1ecd3f4008cd/vis_functional_properties.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">vis_functional_properties.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/45c084cb2b0f07c173b4da975f1d2c18/vis_functional_properties.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">vis_functional_properties.py</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2023, Sara Sommariva.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

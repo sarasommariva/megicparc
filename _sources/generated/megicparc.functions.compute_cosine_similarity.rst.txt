@@ -1,0 +1,12 @@
+﻿:mod:`megicparc.functions`.compute_cosine_similarity
+=================================================================
+
+.. currentmodule:: megicparc.functions
+
+.. autofunction:: compute_cosine_similarity
+
+.. include:: megicparc.functions.compute_cosine_similarity.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Megicparc API Reference &#8212; megicparc 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="_static/documentation_options.js?v=292eb321"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="megicparc.functions.compute_parcellation" href="generated/megicparc.functions.compute_parcellation.html" />
+    <link rel="prev" title="megicparc: MEG leadfield-based cortical parcellations" href="index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          megicparc</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="#">API</a></li>
+                <li><a href="auto_examples/index.html">Examples</a></li>
+                <li><a href="auto_paper/index.html">Reproducing paper results</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/api.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <section id="megicparc-api-reference">
+<h1>Megicparc API Reference<a class="headerlink" href="#megicparc-api-reference" title="Link to this heading">¶</a></h1>
+<section id="computation">
+<h2>Computation<a class="headerlink" href="#computation" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/megicparc.functions.compute_parcellation.html#megicparc.functions.compute_parcellation" title="megicparc.functions.compute_parcellation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_parcellation</span></code></a>(sort_dist, k_nn)</p></td>
+<td><p>Run flame algorithm</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/megicparc.functions.compute_distance_matrix.html#megicparc.functions.compute_distance_matrix" title="megicparc.functions.compute_distance_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_distance_matrix</span></code></a>(fwd[, gamma, theta, ...])</p></td>
+<td><p>Compute combined distance matrix and sort it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/megicparc.functions.compute_cosine_similarity.html#megicparc.functions.compute_cosine_similarity" title="megicparc.functions.compute_cosine_similarity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_cosine_similarity</span></code></a>(fwd)</p></td>
+<td><p>Define cosine similarity s_ij^c</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/megicparc.functions.compute_anatomical_mask.html#megicparc.functions.compute_anatomical_mask" title="megicparc.functions.compute_anatomical_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_anatomical_mask</span></code></a>(labels, src[, ...])</p></td>
+<td><p>Define anatomical constraints d_ij^a</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/megicparc.functions.read_cortico_similarity.html#megicparc.functions.read_cortico_similarity" title="megicparc.functions.read_cortico_similarity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_cortico_similarity</span></code></a>(src)</p></td>
+<td><p>Read cortico-cortical similarity matrix from source space</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/megicparc.functions.compute_density.html#megicparc.functions.compute_density" title="megicparc.functions.compute_density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_density</span></code></a>(sort_dist_vals, k_nn)</p></td>
+<td><p>Compute density function</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/megicparc.viz.plot_flame_labels.html#megicparc.viz.plot_flame_labels" title="megicparc.viz.plot_flame_labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_flame_labels</span></code></a>(indeces, labels, src, ...)</p></td>
+<td><p>Plot filled version of flame parcels</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/megicparc.viz.plot_flame_centroids.html#megicparc.viz.plot_flame_centroids" title="megicparc.viz.plot_flame_centroids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_flame_centroids</span></code></a>(flame_data, src, ...[, ...])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/megicparc.utils.compute_auc.html#megicparc.utils.compute_auc" title="megicparc.utils.compute_auc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_auc</span></code></a>(estimated_values, true_roi)</p></td>
+<td><p>Compute the value of the area under the receiver operating characteristic curve (AUC).</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2023, Sara Sommariva.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

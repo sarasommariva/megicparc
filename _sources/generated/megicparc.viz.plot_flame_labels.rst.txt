@@ -1,0 +1,12 @@
+﻿:mod:`megicparc.viz`.plot_flame_labels
+===================================================
+
+.. currentmodule:: megicparc.viz
+
+.. autofunction:: plot_flame_labels
+
+.. include:: megicparc.viz.plot_flame_labels.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>
