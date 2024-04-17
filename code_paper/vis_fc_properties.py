@@ -584,7 +584,7 @@ for idx_s, subject in enumerate(subjects):
     for idx_a, alpha in enumerate(alpha_bio_tot):
         for idx_k, knn in enumerate(knn_tot):
             ax_xi1_tt[idx_a].plot(gamma_tot, 
-                                  xi2_p_values[idx_k, :, idx_s, idx_a], 
+                                  xi2_p_values[idx_k,axaz :, idx_s, idx_a], 
                                   label='$k$ = %d'%knn, color=colors[idx_k])
             ax_xi1_tt[idx_a].set_yscale('log')
         ax_xi1_tt[idx_a].plot(gamma_tot, 
