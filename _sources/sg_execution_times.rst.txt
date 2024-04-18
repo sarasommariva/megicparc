@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**224:03.511** total execution time for 10 files **from all galleries**:
+**10:24.468** total execution time for 10 files **from all galleries**:
 
 .. container::
 
@@ -32,20 +32,20 @@ Computation times
    * - Example
      - Time
      - Mem (MB)
-   * - :ref:`sphx_glr_auto_examples_plot_2_compute_parc.py` (``../examples/plot_2_compute_parc.py``)
-     - 202:25.035
-     - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_1_generate_parc.py` (``../examples/plot_1_generate_parc.py``)
-     - 19:43.199
+     - 06:37.613
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_3_structural_properties.py` (``../examples/plot_3_structural_properties.py``)
-     - 01:25.771
+     - 01:38.736
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_2_compute_parc.py` (``../examples/plot_2_compute_parc.py``)
+     - 01:32.347
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_5_experimental_MEG.py` (``../examples/plot_5_experimental_MEG.py``)
-     - 00:21.631
+     - 00:25.844
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_4_functional_properties.py` (``../examples/plot_4_functional_properties.py``)
-     - 00:07.874
+     - 00:09.927
      - 0.0
    * - :ref:`sphx_glr_auto_paper_1_compute_parcs.py` (``../code_paper/1_compute_parcs.py``)
      - 00:00.000

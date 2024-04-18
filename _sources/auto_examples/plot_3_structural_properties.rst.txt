@@ -245,7 +245,7 @@ Analysis with meg-informed parcels
  .. code-block:: none
 
     -- number of adjacent vertices : 8196
-    /m/home/home2/29/sommars1/data/Documents/sara_flame_pythontools/examples/plot_3_structural_properties.py:86: RuntimeWarning: 8.5% of original source space vertices have been omitted, tri-based adjacency will have holes.
+    /m/home/home2/29/sommars1/data/Documents/megicparc/examples/plot_3_structural_properties.py:86: RuntimeWarning: 8.5% of original source space vertices have been omitted, tri-based adjacency will have holes.
     Consider using distance-based adjacency or morphing data to all source space vertices.
       bmesh_adj_mat = np.array(spatial_src_adjacency(fwd['src']).todense())
     Loading ../data/data_mne_sample/sample_flame_grad_k10_gamma0.00_theta0.05.pkl
@@ -706,7 +706,7 @@ Plot 7. Reduced source space on top of DK atlas
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 25.771 seconds)
+   **Total running time of the script:** (1 minutes 38.736 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_3_structural_properties.py:

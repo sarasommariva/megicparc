@@ -136,12 +136,12 @@ MEG informed cortical parcellation.</p>
                          <span class="n">ref_meg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="s1">&#39;bads&#39;</span><span class="p">)</span>
 <span class="n">fwd</span> <span class="o">=</span> <span class="n">convert_forward_solution</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">surf_ori</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                <span class="n">use_cps</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="c1">#src = read_source_spaces(src_file)</span>
+<span class="n">src</span> <span class="o">=</span> <span class="n">read_source_spaces</span><span class="p">(</span><span class="n">src_file</span><span class="p">)</span>
 <span class="c1"># Inter-source distances along the cortical surface has been added</span>
 <span class="c1"># to the source-space as follows</span>
-<span class="kn">from</span> <span class="nn">mne</span> <span class="kn">import</span> <span class="n">add_source_space_distances</span>
-<span class="n">src</span> <span class="o">=</span> <span class="n">add_source_space_distances</span><span class="p">(</span><span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">])</span>
-<span class="n">src</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;data_mne_sample&#39;</span><span class="p">,</span> <span class="s1">&#39;source_space_distance-src.fif&#39;</span><span class="p">))</span>
+<span class="c1">#from mne import add_source_space_distances</span>
+<span class="c1">#src = add_source_space_distances(fwd[&#39;src&#39;])</span>
+<span class="c1">#src.save(op.join(&#39;..&#39;, &#39;data&#39;, &#39;data_mne_sample&#39;, &#39;source_space_distance-src.fif&#39;))</span>
 
 <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span>
 </pre></div>
@@ -168,16 +168,17 @@ MEG informed cortical parcellation.</p>
     Average patch normals will be employed in the rotation to the local surface coordinates....
     Converting to surface-based source orientations...
     [done]
-Calculating source space distances (limit=inf mm)...
+    Reading a source space...
     Computing patch statistics...
     Patch information added...
+    Distance information added...
+    [done]
+    Reading a source space...
     Computing patch statistics...
     Patch information added...
-    Write a source space...
+    Distance information added...
     [done]
-    Write a source space...
-    [done]
-    2 source spaces written
+    2 source spaces read
 </pre></div>
 </div>
 <p>Load the cortical atlas and run flame algorithm</p>
@@ -774,7 +775,7 @@ Using pyvistaqt 3d backend.
 &#39;&#39;
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (19 minutes 43.199 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (6 minutes 37.613 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-1-generate-parc-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/a9ac0704d2943684841cc79bf4e44b9b/plot_1_generate_parc.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_1_generate_parc.ipynb</span></code></a></p>

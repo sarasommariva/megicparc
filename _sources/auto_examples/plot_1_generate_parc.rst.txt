@@ -91,12 +91,12 @@ Load lead-field matrix and source-space
                              ref_meg=False, exclude='bads')
     fwd = convert_forward_solution(fwd, surf_ori=True, force_fixed=True,
                                    use_cps=True)
-    #src = read_source_spaces(src_file)
+    src = read_source_spaces(src_file)
     # Inter-source distances along the cortical surface has been added
     # to the source-space as follows
-    from mne import add_source_space_distances
-    src = add_source_space_distances(fwd['src'])
-    src.save(op.join('..', 'data', 'data_mne_sample', 'source_space_distance-src.fif'))
+    #from mne import add_source_space_distances
+    #src = add_source_space_distances(fwd['src'])
+    #src.save(op.join('..', 'data', 'data_mne_sample', 'source_space_distance-src.fif'))
 
     fwd['src'] = src
 
@@ -130,16 +130,17 @@ Load lead-field matrix and source-space
         Average patch normals will be employed in the rotation to the local surface coordinates....
         Converting to surface-based source orientations...
         [done]
-    Calculating source space distances (limit=inf mm)...
+        Reading a source space...
         Computing patch statistics...
         Patch information added...
+        Distance information added...
+        [done]
+        Reading a source space...
         Computing patch statistics...
         Patch information added...
-        Write a source space...
+        Distance information added...
         [done]
-        Write a source space...
-        [done]
-        2 source spaces written
+        2 source spaces read
 
 
 
@@ -768,7 +769,7 @@ Load the cortical atlas and run flame algorithm
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (19 minutes 43.199 seconds)
+   **Total running time of the script:** (6 minutes 37.613 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_1_generate_parc.py:
