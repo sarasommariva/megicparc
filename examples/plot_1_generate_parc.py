@@ -40,13 +40,14 @@ fwd = pick_types_forward(fwd, meg=sensors_meg, eeg=False,
                          ref_meg=False, exclude='bads')
 fwd = convert_forward_solution(fwd, surf_ori=True, force_fixed=True,
                                use_cps=True)
-src = read_source_spaces(src_file)
-fwd['src'] = src
+#src = read_source_spaces(src_file)
 # Inter-source distances along the cortical surface has been added
 # to the source-space as follows
-#from mne import add_source_space_distances
-#src = add_source_space_distances(fwd['src'])
-#src.save('source_space_distance-src.fif')
+from mne import add_source_space_distances
+src = add_source_space_distances(fwd['src'])
+src.save(op.join('..', 'data', 'data_mne_sample', 'source_space_distance-src.fif'))
+
+fwd['src'] = src
 
 ######################################################################
 # Load the cortical atlas and run flame algorithm

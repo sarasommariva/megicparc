@@ -182,25 +182,17 @@ pseudoxml:
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
-# TO BE ADAPTED!!!
-#install:
-#	rm -rf _build/doctrees _build/transfreq.github.io
-	# first clone the neuropycon/ephypype.github.io repo because it may ask
-	# for password and we don't want to delay this long build in
-	# the middle of it
-	# --no-checkout just fetches the root folder without content
-	# --depth 1 is a speed optimization since we don't need the
-	# history prior to the last commit
-	# -b gh-pages fetches only the branch for the gh-pages
-#	git clone -b gh-pages --single-branch --no-checkout --depth 1 https://github.com/elisabettavallarino/transfreq.git _build/transfreq.github.io
-#	touch _build/transfreq.github.io/.nojekyll
-#	make html
-#	cd _build/ && \
-#	cp -r html/* transfreq.github.io && \
-#	cd transfreq.github.io && \
-#	git add * && \
-#	git add .nojekyll && \
-#	git commit -a -m 'Make install' && \
-#	git push
+install:
+	rm -rf _build/doctrees _build/megicparc.github.io
+	git clone -b gh-pages --single-branch --no-checkout --depth 1 https://version.aalto.fi/gitlab/sommars1/sara_flame_pythontools.git _build/megicparc.github.io
+	touch _build/megicparc.github.io/.nojekyll
+	make html
+	cd _build/ && \
+	cp -r html/* megicparc.github.io && \
+	cd megicparc.github.io && \
+	git add * && \
+	git add .nojekyll && \
+	git commit -a -m 'Make install' && \
+	git push
 
 
