@@ -328,10 +328,10 @@ for idx_t, theta in enumerate(theta_tplot):
 plt.legend()
 plt.xlim([0, 0.9])
 plt.ylim([0, 2])
-plt.xlabel(r'$\gamma$', fontsize=30)
-plt.ylabel(r'$\theta$ $\frac{\gamma}{1-\gamma}$', fontsize=30)
+plt.xlabel(r'$\gamma$', fontsize=28)
+plt.ylabel(r'$\theta$ $\frac{\gamma}{1-\gamma}$', fontsize=28)
 
-f_tplot.set_size_inches(8, 6.5)
+f_tplot.set_size_inches(10,7)
 f_tplot.savefig(op.join(path_fig, 'impact_theta.png')) 
 
 
