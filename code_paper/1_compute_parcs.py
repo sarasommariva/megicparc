@@ -73,7 +73,7 @@ for idx_sub, subject in enumerate(subjects):
             del flame_data
         del sort_dist
 
-    if subject == 'k2_T1':  # For 'k2_T1' we also compute parcellations for theta = 0
+    if subject == 'k2_T1' or subject == 'CC110182':  # For 'k2_T1' we also compute parcellations for theta = 0
 
         theta_aux = 0
 

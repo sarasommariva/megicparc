@@ -130,7 +130,8 @@ for idx_g, gamma in enumerate(gamma_tot):
 
 # %%
 # In[]: Step 6. Additional analysis: impact of the anatomical constraints
-ac_sub = 'k2_T1'
+#ac_sub = 'k2_T1'
+ac_sub = 'CC110182'
 path_lf = string_lf.format(ac_sub)
 fwd = read_forward_solution(path_lf)
 label_lh = read_labels_from_annot(subject=ac_sub, parc=parc, hemi='lh',
@@ -336,171 +337,173 @@ f_tplot.savefig(op.join(path_fig, 'impact_theta.png'))
 
 
 # %%
-Brain = get_brain_class()
+if ac_sub == 'k2_T1':
 
-ex_sub = 'k2_T1'
+    Brain = get_brain_class()
+    
+    ex_sub = 'k2_T1'
+    
+    path_lf = string_lf.format(ex_sub)
+    fwd = read_forward_solution(path_lf)
+    
+    label_lh = read_labels_from_annot(subject=ex_sub, parc=parc, hemi='lh',
+                       subjects_dir=subjects_dir)
+    label_rh = read_labels_from_annot(subject=ex_sub, parc=parc, hemi='rh', 
+                    subjects_dir=subjects_dir)
+    label = label_lh + label_rh
+                
+    # In[] 7.5. Spatial cohesion
+    knn_plot = 30
+    gamma_plot = [0, 0.4, 0.6, 1]
+    theta_plot = 0.05
+    cart_coord = [-0.03, 0.025, 0.08]
+    
+    src = fwd['src']
+    V = np.concatenate((src[0]['rr'][src[0]['vertno']],
+                   src[1]['rr'][src[1]['vertno']]), axis=0)
+    nvert = src[0]['nuse'] + src[1]['nuse']
+    
+    idx_vert = np.argmin(np.linalg.norm(V - cart_coord, axis=1))
+    
+    for gamma in gamma_plot:
+        target_file = string_target_file.format(
+                            ex_sub, knn_plot, gamma, theta_plot)
+        print('Loading %s'%target_file)
+        with open(target_file, 'rb') as aux_lf:
+            flame_data = pickle.load(aux_lf)
+        flame_labels = megicparc.store_flame_labels(flame_data, src, ex_sub)
+    
+        parcels_vector = np.zeros(nvert, dtype='int') - 1
+        for ir in range(flame_data['centroids']):
+            parcels_vector[flame_data['parcel'][ir]] = ir
+        sel_roi = parcels_vector[idx_vert]
+        index = [sel_roi + 1]
+                  
+        brain = megicparc.plot_flame_labels(index, flame_labels, src, ex_sub,
+                subjects_dir, surf='inflated', color = [1, 0.64, 0.],
+                plot_region=True, plot_points=False, plot_borders=False)
+        brain.show_view(azimuth=173, elevation= 60)
+                
+        brain.save_image(op.join(path_fig, 
+            '%s_knn_%d_gamma_%1.2f.png'%(ex_sub, knn_plot, gamma)))
+    
 
-path_lf = string_lf.format(ex_sub)
-fwd = read_forward_solution(path_lf)
-
-label_lh = read_labels_from_annot(subject=ex_sub, parc=parc, hemi='lh',
-                   subjects_dir=subjects_dir)
-label_rh = read_labels_from_annot(subject=ex_sub, parc=parc, hemi='rh', 
-                subjects_dir=subjects_dir)
-label = label_lh + label_rh
-            
-# In[] 7.5. Spatial cohesion
-knn_plot = 30
-gamma_plot = [0, 0.4, 0.6, 1]
-theta_plot = 0.05
-cart_coord = [-0.03, 0.025, 0.08]
-
-src = fwd['src']
-V = np.concatenate((src[0]['rr'][src[0]['vertno']],
-               src[1]['rr'][src[1]['vertno']]), axis=0)
-nvert = src[0]['nuse'] + src[1]['nuse']
-
-idx_vert = np.argmin(np.linalg.norm(V - cart_coord, axis=1))
-
-for gamma in gamma_plot:
+    # %%
+    # In[] 7.6. Impact of the anatomical constraints
+    knn_plot = 30
+    gamma_plot = 0.8
+    theta_plot = 0.05
+    thresh = 0.05
+    thresh_merg = 0.1
+    
     target_file = string_target_file.format(
-                        ex_sub, knn_plot, gamma, theta_plot)
+                            ex_sub, knn_plot, gamma_plot, theta_plot)
     print('Loading %s'%target_file)
     with open(target_file, 'rb') as aux_lf:
         flame_data = pickle.load(aux_lf)
+    
     flame_labels = megicparc.store_flame_labels(flame_data, src, ex_sub)
-
-    parcels_vector = np.zeros(nvert, dtype='int') - 1
-    for ir in range(flame_data['centroids']):
-        parcels_vector[flame_data['parcel'][ir]] = ir
-    sel_roi = parcels_vector[idx_vert]
-    index = [sel_roi + 1]
-              
-    brain = megicparc.plot_flame_labels(index, flame_labels, src, ex_sub,
-            subjects_dir, surf='inflated', color = [1, 0.64, 0.],
-            plot_region=True, plot_points=False, plot_borders=False)
-    brain.show_view(azimuth=173, elevation= 60)
+    proj_anrois = megicparc.labels_to_array(label, src)
+    
+    conting_mat = np.array([
+                    np.array([
+                    np.intersect1d(p_fl, p_an).shape[0] 
+                    for p_an in proj_anrois['parcel']]) 
+                    for p_fl in flame_data['parcel'][0:flame_data['centroids']]])
+    conting_mat = conting_mat / \
+                    np.sum(conting_mat, axis=1)[:, np.newaxis]
+                            
+    # In[]. Plot 1. Example of an anatomical parcel splitted in two meg-informed parcels            
+    anat_sel = 'postcentral-lh'
+    idx_an = proj_anrois['name'].index(anat_sel)
+    if not label[idx_an].name == anat_sel:
+        raise ValueError('Something wrong in selecting anatomical region.')
+    idx_fl = np.where(conting_mat[:, idx_an]>thresh)[0]
             
-    brain.save_image(op.join(path_fig, 
-        '%s_knn_%d_gamma_%1.2f.png'%(ex_sub, knn_plot, gamma)))
-
-
-# %%
-# In[] 7.6. Impact of the anatomical constraints
-knn_plot = 30
-gamma_plot = 0.8
-theta_plot = 0.05
-thresh = 0.05
-thresh_merg = 0.1
-
-target_file = string_target_file.format(
-                        ex_sub, knn_plot, gamma_plot, theta_plot)
-print('Loading %s'%target_file)
-with open(target_file, 'rb') as aux_lf:
-    flame_data = pickle.load(aux_lf)
-
-flame_labels = megicparc.store_flame_labels(flame_data, src, ex_sub)
-proj_anrois = megicparc.labels_to_array(label, src)
-
-conting_mat = np.array([
-                np.array([
-                np.intersect1d(p_fl, p_an).shape[0] 
-                for p_an in proj_anrois['parcel']]) 
-                for p_fl in flame_data['parcel'][0:flame_data['centroids']]])
-conting_mat = conting_mat / \
-                np.sum(conting_mat, axis=1)[:, np.newaxis]
-                        
-# In[]. Plot 1. Example of an anatomical parcel splitted in two meg-informed parcels            
-anat_sel = 'postcentral-lh'
-idx_an = proj_anrois['name'].index(anat_sel)
-if not label[idx_an].name == anat_sel:
-    raise ValueError('Something wrong in selecting anatomical region.')
-idx_fl = np.where(conting_mat[:, idx_an]>thresh)[0]
-        
-brain_split = Brain(ex_sub, hemi='both', surf='inflated', 
-    background='white', subjects_dir=subjects_dir, alpha=1)
-brain_split.add_label(label[idx_an], hemi=label[idx_an].hemi, 
-                      alpha=0.9) 
-aux = idx_fl+1
-megicparc.plot_flame_labels(aux.tolist(), flame_labels, src, ex_sub, 
-    subjects_dir, surf='inflated', brain=brain_split, 
-    plot_region=False, plot_points=True, plot_borders=False)
-
-nvert_lh = src[0]['nuse']
-idx_centr = flame_data['centroids_id'][idx_fl]
-centr_lh = idx_centr[np.where(idx_centr < nvert_lh)]
-centr_rh = idx_centr[np.where(idx_centr >= nvert_lh)] - nvert_lh
-        
-if not centr_lh.size == 0:
-    brain_split.add_foci(src[0]['vertno'][centr_lh], coords_as_verts=True, 
-            hemi='lh', scale_factor=0.7, color='white')
-if not centr_rh.size == 0:
-    brain_split.add_foci(src[1]['vertno'][centr_rh], coords_as_verts=True, 
-            hemi='rh', scale_factor=0.7, color='white')
-
-brain_split.show_view(azimuth=180, elevation=60)
-brain_split.save_image(op.join(path_fig, 
-        '%s_split_%d_%1.2f.png'%(ex_sub, knn_plot, gamma_plot)))
-
-# In[]. Plot 2. Example of flame regions merged in anatomical rois
-anat_sel = 'parsopercularis-lh'
-idx_an = proj_anrois['name'].index(anat_sel)
-if not label[idx_an].name == anat_sel:
-    raise ValueError('Something wrong in selecting anatomical region.')
-idx_fl = np.where(conting_mat[:, idx_an]>thresh)[0]
-idx_an_merged = np.array(
-        [np.where(conting_mat[ir, :]>thresh_merg)[0] for ir in idx_fl])  
-idx_an_merged = np.unique(np.concatenate(idx_an_merged))
-        
-idx_an_merged = idx_an_merged[1:]
-idx_fl = np.array([idx_fl[1]])
-        
-brain_m = Brain(ex_sub, hemi='both', surf='inflated', 
+    brain_split = Brain(ex_sub, hemi='both', surf='inflated', 
         background='white', subjects_dir=subjects_dir, alpha=1)
-for ia in idx_an_merged:
-    if ia < 68:
-        brain_m.add_label(label[ia], hemi=label[ia].hemi, alpha=0.9) 
-    else:
-        print('@@@@@ Also outliers involved')
-
-colors = [0. , 1., 0.95600906, 1.] 
-for ii in range(idx_fl.shape[0]): # I need a for for selecting colors
-    megicparc.plot_flame_labels([idx_fl[ii]+1], flame_labels, src, 
-        ex_sub, subjects_dir, surf='inflated', brain=brain_m, 
-        color=colors, plot_region=False, plot_points=True, 
-        plot_borders=False)
+    brain_split.add_label(label[idx_an], hemi=label[idx_an].hemi, 
+                          alpha=0.9) 
+    aux = idx_fl+1
+    megicparc.plot_flame_labels(aux.tolist(), flame_labels, src, ex_sub, 
+        subjects_dir, surf='inflated', brain=brain_split, 
+        plot_region=False, plot_points=True, plot_borders=False)
+    
+    nvert_lh = src[0]['nuse']
+    idx_centr = flame_data['centroids_id'][idx_fl]
+    centr_lh = idx_centr[np.where(idx_centr < nvert_lh)]
+    centr_rh = idx_centr[np.where(idx_centr >= nvert_lh)] - nvert_lh
             
-nvert_lh = src[0]['nuse']
-idx_centr = flame_data['centroids_id'][idx_fl]
-centr_lh = idx_centr[np.where(idx_centr < nvert_lh)]
-centr_rh = idx_centr[np.where(idx_centr >= nvert_lh)] - nvert_lh
-
-if not centr_lh.size == 0:
-    brain_m.add_foci(src[0]['vertno'][centr_lh], coords_as_verts=True, 
-            hemi='lh', scale_factor=0.7, color='white')
-if not centr_rh.size == 0:
-    brain_m.add_foci(src[1]['vertno'][centr_rh], coords_as_verts=True, 
-            hemi='rh', scale_factor=0.7, color='white')
-
-brain_m.show_view(azimuth=170, elevation=90)
-brain_m.save_image(op.join(path_fig, 
-            '%s_merge_%d_%1.2f.png'%(ex_sub, knn_plot, gamma_plot)))
-
-# %%
-# In[]. 7.7. Reduced source space on top of DK atlas   
-brain_redV = Brain(ex_sub, hemi='both', surf='inflated', 
-    background='white', subjects_dir=subjects_dir, alpha=1)
-#   Superimpose anatomical regions
-for ir in range(len(label)):
-    brain_redV.add_label(label[ir], hemi=label[ir].hemi, alpha=0.9) 
-
-#  Superimpose centroids    
-megicparc.plot_flame_centroids(flame_data, src, ex_sub, subjects_dir, 
-                           brain_redV)
-
-brain_redV.show_view(azimuth=170, elevation=90)
-
-brain_redV.save_image(op.join(path_fig, 
-        '%s_redV_%d_%1.2f.png'%(ex_sub, knn_plot, gamma_plot)))
-
-# %%
+    if not centr_lh.size == 0:
+        brain_split.add_foci(src[0]['vertno'][centr_lh], coords_as_verts=True, 
+                hemi='lh', scale_factor=0.7, color='white')
+    if not centr_rh.size == 0:
+        brain_split.add_foci(src[1]['vertno'][centr_rh], coords_as_verts=True, 
+                hemi='rh', scale_factor=0.7, color='white')
+    
+    brain_split.show_view(azimuth=180, elevation=60)
+    brain_split.save_image(op.join(path_fig, 
+            '%s_split_%d_%1.2f.png'%(ex_sub, knn_plot, gamma_plot)))
+    
+    # In[]. Plot 2. Example of flame regions merged in anatomical rois
+    anat_sel = 'parsopercularis-lh'
+    idx_an = proj_anrois['name'].index(anat_sel)
+    if not label[idx_an].name == anat_sel:
+        raise ValueError('Something wrong in selecting anatomical region.')
+    idx_fl = np.where(conting_mat[:, idx_an]>thresh)[0]
+    idx_an_merged = np.array(
+            [np.where(conting_mat[ir, :]>thresh_merg)[0] for ir in idx_fl])  
+    idx_an_merged = np.unique(np.concatenate(idx_an_merged))
+            
+    idx_an_merged = idx_an_merged[1:]
+    idx_fl = np.array([idx_fl[1]])
+            
+    brain_m = Brain(ex_sub, hemi='both', surf='inflated', 
+            background='white', subjects_dir=subjects_dir, alpha=1)
+    for ia in idx_an_merged:
+        if ia < 68:
+            brain_m.add_label(label[ia], hemi=label[ia].hemi, alpha=0.9) 
+        else:
+            print('@@@@@ Also outliers involved')
+    
+    colors = [0. , 1., 0.95600906, 1.] 
+    for ii in range(idx_fl.shape[0]): # I need a for for selecting colors
+        megicparc.plot_flame_labels([idx_fl[ii]+1], flame_labels, src, 
+            ex_sub, subjects_dir, surf='inflated', brain=brain_m, 
+            color=colors, plot_region=False, plot_points=True, 
+            plot_borders=False)
+                
+    nvert_lh = src[0]['nuse']
+    idx_centr = flame_data['centroids_id'][idx_fl]
+    centr_lh = idx_centr[np.where(idx_centr < nvert_lh)]
+    centr_rh = idx_centr[np.where(idx_centr >= nvert_lh)] - nvert_lh
+    
+    if not centr_lh.size == 0:
+        brain_m.add_foci(src[0]['vertno'][centr_lh], coords_as_verts=True, 
+                hemi='lh', scale_factor=0.7, color='white')
+    if not centr_rh.size == 0:
+        brain_m.add_foci(src[1]['vertno'][centr_rh], coords_as_verts=True, 
+                hemi='rh', scale_factor=0.7, color='white')
+    
+    brain_m.show_view(azimuth=170, elevation=90)
+    brain_m.save_image(op.join(path_fig, 
+                '%s_merge_%d_%1.2f.png'%(ex_sub, knn_plot, gamma_plot)))
+    
+    # %%
+    # In[]. 7.7. Reduced source space on top of DK atlas   
+    brain_redV = Brain(ex_sub, hemi='both', surf='inflated', 
+        background='white', subjects_dir=subjects_dir, alpha=1)
+    #   Superimpose anatomical regions
+    for ir in range(len(label)):
+        brain_redV.add_label(label[ir], hemi=label[ir].hemi, alpha=0.9) 
+    
+    #  Superimpose centroids    
+    megicparc.plot_flame_centroids(flame_data, src, ex_sub, subjects_dir, 
+                               brain_redV)
+    
+    brain_redV.show_view(azimuth=170, elevation=90)
+    
+    brain_redV.save_image(op.join(path_fig, 
+            '%s_redV_%d_%1.2f.png'%(ex_sub, knn_plot, gamma_plot)))
+    
+    # %%
