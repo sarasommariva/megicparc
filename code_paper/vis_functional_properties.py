@@ -5,18 +5,22 @@ Functional properties of the MEG-informed parcellation
 """
 
 import os.path as op
-import os
 import numpy as np
 from scipy import stats
 import pickle
 
 from mne import (read_forward_solution, pick_types_forward, 
-                 convert_forward_solution, read_labels_from_annot)
+                 convert_forward_solution, read_labels_from_annot,
+                 SourceEstimate)
+from mne.viz import plot_brain_colorbar
+
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import matplotlib.pyplot as plt
 
 import megicparc
 from megicparc.utils import compute_inv_op_rank, collapse_RM
+from megicparc.viz import plot_flame_centroids
 
 # %%
 # In[]: Step 1. Define general parameters
@@ -48,6 +52,10 @@ string_target_file = op.join(folder_fl,
 eucl_errors_full = []
 eucl_errors = {x : [] for x in \
     ['k%d_gamma%1.2f'%(knn, gamma) for knn in knn_tot for gamma in gamma_tot]}
+eucl_errors_full_subs = {sub: eucl_errors_full for sub in subjects} 
+eucl_errors_subs = {sub: {x : [] for x in \
+    ['k%d_gamma%1.2f'%(knn, gamma) for knn in knn_tot for gamma in gamma_tot]}
+                    for sub in subjects} 
 
 correct_roi_an = np.zeros(len(subjects))
 correct_roi_an_full = np.zeros(len(subjects))
@@ -100,6 +108,8 @@ for idx_sub, subject in enumerate(subjects):
     ee_full = megicparc.compute_localization_error(peak_full, 
                                      np.arange(n_vert), fwd['src'])
     eucl_errors_full += ee_full.tolist()
+    
+    eucl_errors_full_subs[subject] = ee_full
 
 #       3.2. RM on anatomical regions and related evaluation criteria
     R_an = collapse_RM(R_full, label, fwd['src'], mode_labels)
@@ -136,6 +146,7 @@ for idx_sub, subject in enumerate(subjects):
                                     flame_data['centroids_id'], fwd['src'])
             eucl_errors['k%d_gamma%1.2f'%(knn, gamma)] += ee.tolist()
 
+            eucl_errors_subs[subject]['k%d_gamma%1.2f'%(knn, gamma)] = ee
 
             # 4.3. Correctly identified regions
             true_c = megicparc.membership2vector( 
@@ -342,3 +353,81 @@ print(di_p_values<0.001)
 print(di_p_values)
 
 # %%
+# AP2. Spatial distribution of the localization error
+#clim = {'kind' : 'value', 'lims' : [0, 0.3, 1]}
+subjects = ['k1_T1', 'k2_T1', 'k4_T1', 'k6_T1', 'k7_T1',
+           'CC110045', 'CC110182', 'CC110174', 'CC110126', 'CC110056']
+for idx_sub, subj_sd in enumerate(subjects):
+    knn_sd = [20, 30]
+    gamma_sd = [0.20, 0.40]
+    
+    path_lf = string_lf.format(subj_sd)
+    fwd = read_forward_solution(path_lf)
+    vertices_plot = [fwd['src'][0]['vertno'], fwd['src'][1]['vertno']]
+    
+    for idx_knn, knn in enumerate(knn_sd):
+        for idx_gamma, gamma in enumerate(gamma_sd):
+            
+            target_file = string_target_file.format(subj_sd, knn, gamma, theta)
+            print('Loading %s'%target_file)
+            with open(target_file, 'rb') as aux_lf:
+                flame_data = pickle.load(aux_lf)
+            
+            aux_ee = eucl_errors_subs[subj_sd]['k%d_gamma%1.2f'%(knn, gamma)]
+            aux_ee = aux_ee / np.max(aux_ee)
+            clim = {'kind' : 'value', 'lims' : [0, 0.3, 1]}
+            #clim = {'kind' : 'value', 'lims' : [0, np.mean(aux_ee), 1*np.max(aux_ee)]}
+            stc_ee = SourceEstimate(aux_ee[:, np.newaxis], vertices_plot, 
+                                      tmin = 0, tstep = 1, subject=subj_sd)
+            brain = stc_ee.plot(views="lat", hemi="split", size=(800, 400),
+                            subject=subj_sd, subjects_dir=subjects_dir, background="w", 
+                            colorbar=False, clim=clim, time_viewer=False, show_traces=False)
+            plot_flame_centroids(flame_data, fwd['src'], subj_sd, 
+                        subjects_dir, brain=brain, scale_factor=0.65)
+            screenshot = brain.screenshot()
+            brain.close()
+            nonwhite_pix = (screenshot != 255).any(-1)
+            nonwhite_row = nonwhite_pix.any(1)
+            nonwhite_col = nonwhite_pix.any(0)
+            cropped_screenshot = screenshot[nonwhite_row][:, nonwhite_col]
+    
+            fig, ax = plt.subplots(figsize=(10, 3))
+            ax.imshow(cropped_screenshot)
+            ax.axis("off")
+            #divider = make_axes_locatable(ax)
+            #cax = divider.append_axes("right", size="5%", pad=0.2)
+            #cbar = plot_brain_colorbar(cax, clim, label='Norm. Loc. Err.')
+            fig.subplots_adjust(left=0.05, right=0.9, bottom=0.01, top=0.9, 
+                                wspace=0.1, hspace=0.5)
+            fig.savefig(op.join(path_fig,  
+                'sp_locerr_%s_k%d_gamma%1.2f_fl.png'%(subj_sd, knn, gamma)))
+            
+            del aux_ee, stc_ee, brain, clim
+    
+    aux_ee_full = eucl_errors_full_subs[subj_sd]
+    aux_ee_full = aux_ee_full / np.max(aux_ee_full)
+    clim = {'kind' : 'value', 'lims' : [0, 0.3, 1]}
+    #clim = {'kind' : 'value', 'lims' : [0, np.mean(aux_ee_full), 1*np.max(aux_ee_full)]}
+    stc_ee_full = SourceEstimate(aux_ee_full[:, np.newaxis], vertices_plot, 
+                            tmin = 0, tstep = 1, subject=subj_sd)
+    brain = stc_ee_full.plot(views="lat", hemi="split", size=(800, 400),
+                    subject=subj_sd, subjects_dir=subjects_dir, background="w", 
+                    colorbar=False, clim=clim, time_viewer=False, show_traces=False)
+    screenshot = brain.screenshot()
+    brain.close()
+    nonwhite_pix = (screenshot != 255).any(-1)
+    nonwhite_row = nonwhite_pix.any(1)
+    nonwhite_col = nonwhite_pix.any(0)
+    cropped_screenshot = screenshot[nonwhite_row][:, nonwhite_col]
+    
+    fig, ax = plt.subplots(figsize=(8.5, 3))
+    ax.imshow(cropped_screenshot)
+    ax.axis("off")
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.2)
+    cbar = plot_brain_colorbar(cax, clim, label='Norm. Loc. Err.')
+    fig.subplots_adjust(left=0.05, right=0.85, bottom=0.01, top=0.9, 
+                        wspace=0.1, hspace=0.5)
+    fig.savefig(op.join(path_fig,  
+        'sp_locerr_%s_full.png'%(subj_sd)))
+
