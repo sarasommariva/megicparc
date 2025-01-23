@@ -37,17 +37,17 @@ alpha_bio_tot = [0.25, 0.5]
 num_run = 100
 
 # In[]: Initialization
-true_ic = np.zeros((num_run, np.size(subjects)))
+true_coh = np.zeros((num_run, np.size(subjects)))
 
-est_ic_an = np.full((num_run, np.size(subjects), np.size(alpha_bio_tot)), np.nan)
-rel_err_ic_an = np.full((num_run, np.size(subjects), np.size(alpha_bio_tot)), np.nan)
+est_coh_an = np.full((num_run, np.size(subjects), np.size(alpha_bio_tot)), np.nan)
+rel_err_coh_an = np.full((num_run, np.size(subjects), np.size(alpha_bio_tot)), np.nan)
 ratio_strongest_an = np.full((num_run, np.size(subjects), np.size(alpha_bio_tot)), np.nan)
 tpr_an = np.zeros((num_run, np.size(subjects), np.size(alpha_bio_tot)))
 fpr_an = np.full((num_run, np.size(subjects), np.size(alpha_bio_tot)), np.nan)
 
-est_ic = np.full((np.size(knn_tot), np.size(gamma_tot), num_run,
+est_coh = np.full((np.size(knn_tot), np.size(gamma_tot), num_run,
                    np.size(subjects), np.size(alpha_bio_tot)), np.nan)
-rel_err_ic = np.full((np.size(knn_tot), np.size(gamma_tot), num_run,
+rel_err_coh = np.full((np.size(knn_tot), np.size(gamma_tot), num_run,
                    np.size(subjects), np.size(alpha_bio_tot)), np.nan)
 ratio_strongest = np.full((np.size(knn_tot), np.size(gamma_tot), num_run,
                    np.size(subjects), np.size(alpha_bio_tot)), np.nan)
@@ -56,20 +56,13 @@ tpr = np.zeros((np.size(knn_tot), np.size(gamma_tot), num_run,
 fpr = np.full((np.size(knn_tot), np.size(gamma_tot), num_run,
                    np.size(subjects), np.size(alpha_bio_tot)), np.nan)
 
-auc_ic_an = np.full((num_run, np.size(subjects), np.size(alpha_bio_tot)), np.nan)
-auc_coh_an = np.full((num_run, np.size(subjects), np.size(alpha_bio_tot)), np.nan)
-auc_ic = np.full((np.size(knn_tot), np.size(gamma_tot), num_run,
-                   np.size(subjects), np.size(alpha_bio_tot)), np.nan)
-auc_coh = np.full((np.size(knn_tot), np.size(gamma_tot), num_run,
-                   np.size(subjects), np.size(alpha_bio_tot)), np.nan)
-
 # In[]: Step 2. Load
 for idx_sub, subject in enumerate(subjects):
     for i_run in range(num_run):
         
 #   2.a. True values (put here for the sake of generalization, but the true values is always the same)
         _aux = pickle.load(open(path_true_val, 'rb'))
-        true_ic[i_run, idx_sub] = _aux['mean_ic'][1, 0]
+        true_coh[i_run, idx_sub] = _aux['mean_coh'][1, 0]
 
 # 2.b. Estimated connectivity values
         path_res = string_results.format(subject,
@@ -80,14 +73,11 @@ for idx_sub, subject in enumerate(subjects):
         idx_roi_an = _aux_est['dipoles']['an_regions']
         idx_roi = _aux_est['dipoles']['fl_regions']
 
-        est_ic_an_mat = _aux_est['conn_est']['ic_an_mean']
-        est_ic_mat = _aux_est['conn_est']['ic_fl_mean']
-
-        sign_values_an = _aux_est['conn_est']['sign_values_an']
-        sign_values = _aux_est['conn_est']['sign_values']
-
         est_coh_an_mat = _aux_est['conn_est']['coh_an_mean']
         est_coh_mat = _aux_est['conn_est']['coh_fl_mean']
+
+        sign_values_an_coh = _aux_est['conn_est']['sign_values_an_coh']
+        sign_values_coh = _aux_est['conn_est']['sign_values_coh']
 
         del _aux_est
 
@@ -95,42 +85,33 @@ for idx_sub, subject in enumerate(subjects):
 
 # In[]: Step 3. Analysis with anatomical Atlas
             idx_roi_an = np.sort(idx_roi_an)[::-1]
-            n_roi_an = est_ic_an_mat['ab_%1.2f'%alpha_bio].shape[0]
+            n_roi_an = est_coh_an_mat['ab_%1.2f'%alpha_bio].shape[0]
             
             if min(idx_roi_an) > -1 and np.size(np.unique(idx_roi_an)) == 2: 
                 # --> exclude run in which the two interecting sources are outliers
                 #     or belong to the same region.
                 
 #   3.a. Relative error in estimating the connection of interest
-                _aux_ic = est_ic_an_mat['ab_%1.2f'%alpha_bio][
+                _aux_coh = est_coh_an_mat['ab_%1.2f'%alpha_bio][
                                 idx_roi_an[0], idx_roi_an[1]]
-                est_ic_an[i_run, idx_sub, idx_a] = _aux_ic
-                rel_err_ic_an[i_run, idx_sub, idx_a] = \
-                    abs(_aux_ic - true_ic[i_run, idx_sub]) / abs(true_ic[i_run, idx_sub])
+                est_coh_an[i_run, idx_sub, idx_a] = _aux_coh
+                rel_err_coh_an[i_run, idx_sub, idx_a] = \
+                    abs(_aux_coh - true_coh[i_run, idx_sub]) / abs(true_coh[i_run, idx_sub])
 #   3.b. Strongest connection
                 ratio_strongest_an[i_run, idx_sub, idx_a] = \
-                    _aux_ic / est_ic_an_mat['ab_%1.2f'%alpha_bio].max()
+                    _aux_coh / est_coh_an_mat['ab_%1.2f'%alpha_bio].max()
                     
 #   3.c. Sensitivity and specificity
-                _aux_sign_an = sign_values_an['ab_%1.2f'%alpha_bio]
+                _aux_sign_an = sign_values_an_coh['ab_%1.2f'%alpha_bio]
                 tpr_an[i_run, idx_sub, idx_a] = _aux_sign_an[
                                             idx_roi_an[0], idx_roi_an[1]]
                 fpr_an[i_run, idx_sub, idx_a] = \
                     (_aux_sign_an.sum() - tpr_an[i_run, idx_sub, idx_a]) / \
                     (0.5 * n_roi_an * (n_roi_an - 1) - 1)
 
-#   3.d. Roc analysis for both ic and coh
-                auc_ic_an[i_run, idx_sub, idx_a] = \
-                    compute_auc(
-                            est_ic_an_mat['ab_%1.2f'%alpha_bio], idx_roi_an)
-
-                auc_coh_an[i_run, idx_sub, idx_a] = \
-                    compute_auc(
-                            est_coh_an_mat['ab_%1.2f'%alpha_bio], idx_roi_an)
-
             else: # FPR are always computed!
 
-                _aux_sign_an = sign_values_an['ab_%1.2f' % alpha_bio]
+                _aux_sign_an = sign_values_an_coh['ab_%1.2f' % alpha_bio]
                 fpr_an[i_run, idx_sub, idx_a] = \
                     _aux_sign_an.sum() / (0.5 * n_roi_an * (n_roi_an - 1))
                 
@@ -139,48 +120,39 @@ for idx_sub, subject in enumerate(subjects):
                 for idx_k, knn in enumerate(knn_tot):
                     
                     _idx_roi = np.sort(idx_roi['k%d_gamma%1.2f'%(knn, gamma)])[::-1]
-                    n_roi = est_ic_mat['k%d_gamma%1.2f_ab%1.2f'%(knn, gamma, alpha_bio)].shape[0] 
+                    n_roi = est_coh_mat['k%d_gamma%1.2f_ab%1.2f'%(knn, gamma, alpha_bio)].shape[0] 
 
 #   4.a. Relative error in estimating the connection of interest
                     if min(_idx_roi) > -1 and np.size(np.unique(_idx_roi)) == 2:
                 # --> exclude run in which the two interecting sources are outliers
                 #     or belong to the same region.
-                        _aux_ic = est_ic_mat['k%d_gamma%1.2f_ab%1.2f'%(knn, gamma, alpha_bio)][
+                        _aux_coh = est_coh_mat['k%d_gamma%1.2f_ab%1.2f'%(knn, gamma, alpha_bio)][
                             _idx_roi[0], _idx_roi[1]]
-                        est_ic[idx_k, idx_g, i_run, idx_sub, idx_a] = _aux_ic
-                        rel_err_ic[idx_k, idx_g, i_run, idx_sub, idx_a] = \
-                            abs(_aux_ic - true_ic[i_run, idx_sub]) / abs(true_ic[i_run, idx_sub])
+                        est_coh[idx_k, idx_g, i_run, idx_sub, idx_a] = _aux_coh
+                        rel_err_coh[idx_k, idx_g, i_run, idx_sub, idx_a] = \
+                            abs(_aux_coh - true_coh[i_run, idx_sub]) / abs(true_coh[i_run, idx_sub])
 #   4.b. Strongest connection
                         ratio_strongest[idx_k, idx_g, i_run, idx_sub, idx_a] = \
-                            _aux_ic / est_ic_mat['k%d_gamma%1.2f_ab%1.2f'%(knn, gamma, alpha_bio)].max()
+                            _aux_coh / est_coh_mat['k%d_gamma%1.2f_ab%1.2f'%(knn, gamma, alpha_bio)].max()
 #   4.c. Sensitivity and specificity
-                        _aux_sign = sign_values['k%d_gamma%1.2f_ab%1.2f'%(knn, gamma, alpha_bio)]
+                        _aux_sign = sign_values_coh['k%d_gamma%1.2f_ab%1.2f'%(knn, gamma, alpha_bio)]
                         tpr[idx_k, idx_g, i_run, idx_sub, idx_a] = \
                             _aux_sign[_idx_roi[0], _idx_roi[1]]
                         fpr[idx_k, idx_g, i_run, idx_sub, idx_a] = \
                             (_aux_sign.sum()-tpr[idx_k, idx_g, i_run, idx_sub, idx_a]) / \
                             (0.5 * n_roi * (n_roi-1) - 1)
-#   4.d. Roc analysis for both ic and coh
-                        auc_ic[idx_k, idx_g, i_run, idx_sub, idx_a] = \
-                            compute_auc(
-                                    est_ic_mat['k%d_gamma%1.2f_ab%1.2f'%(knn, gamma, alpha_bio)], _idx_roi)
-                        auc_coh[idx_k, idx_g, i_run, idx_sub, idx_a] = \
-                            compute_auc(
-                                    est_coh_mat['k%d_gamma%1.2f_ab%1.2f'%(knn, gamma, alpha_bio)], _idx_roi)
-
-                            
                     else:
 
-                        _aux_sign = sign_values['k%d_gamma%1.2f_ab%1.2f' % (knn, gamma, alpha_bio)]
+                        _aux_sign = sign_values_coh['k%d_gamma%1.2f_ab%1.2f' % (knn, gamma, alpha_bio)]
                         fpr[idx_k, idx_g, i_run, idx_sub, idx_a] = \
                             _aux_sign.sum() / (0.5 * n_roi * (n_roi-1))
                             
 # In[] Step 5. Averages
                             
 #    5.a Run with interacting sources in different regions
-run_correct_an = np.invert(np.isnan(est_ic_an[:, :, 0]))
+run_correct_an = np.invert(np.isnan(est_coh_an[:, :, 0]))
 nc_run_an = np.sum(run_correct_an, axis=0)
-run_correct = np.invert(np.isnan(est_ic[:, :, :, :, 0]))
+run_correct = np.invert(np.isnan(est_coh[:, :, :, :, 0]))
 nc_run = np.sum(run_correct, axis=2)
 
 #   5.b. Initialization
@@ -198,22 +170,11 @@ xi2_sem = np.zeros((np.size(knn_tot), np.size(gamma_tot), np.size(alpha_bio_tot)
 fpr_mean = np.zeros((np.size(knn_tot), np.size(gamma_tot), np.size(alpha_bio_tot)))
 fpr_sem = np.zeros((np.size(knn_tot), np.size(gamma_tot), np.size(alpha_bio_tot)))
 
-auc_ic_an_mean = np.zeros(np.size(alpha_bio_tot))
-auc_ic_an_sem = np.zeros(np.size(alpha_bio_tot)) 
-auc_coh_an_mean =  np.zeros(np.size(alpha_bio_tot))
-auc_coh_an_sem =  np.zeros(np.size(alpha_bio_tot))
-
-auc_ic_mean = np.zeros((np.size(knn_tot), np.size(gamma_tot), np.size(alpha_bio_tot)))
-auc_ic_sem = np.zeros((np.size(knn_tot), np.size(gamma_tot), np.size(alpha_bio_tot)))
-auc_coh_mean = np.zeros((np.size(knn_tot), np.size(gamma_tot), np.size(alpha_bio_tot)))
-auc_coh_sem = np.zeros((np.size(knn_tot), np.size(gamma_tot), np.size(alpha_bio_tot))) 
-
-
 for idx_a in range(np.size(alpha_bio_tot)):
 
 #  5.c. Anatomical regions
 
-    _var = rel_err_ic_an[run_correct_an, idx_a]
+    _var = rel_err_coh_an[run_correct_an, idx_a]
     xi1_an_mean[idx_a] = np.mean(_var)
     xi1_an_sem[idx_a] = np.std(_var) / np.sqrt(np.size(_var))
     del _var
@@ -227,22 +188,12 @@ for idx_a in range(np.size(alpha_bio_tot)):
     fpr_an_mean[idx_a] = np.mean(_var)
     fpr_an_sem[idx_a] = np.std(_var) / np.sqrt(np.size(_var))
     del _var
-    
-    _var = auc_ic_an[run_correct_an, idx_a]
-    auc_ic_an_mean[idx_a] = np.mean(_var)
-    auc_ic_an_sem[idx_a] = np.std(_var) / np.sqrt(np.size(_var))
-    del _var
-    
-    _var = auc_coh_an[run_correct_an, idx_a]
-    auc_coh_an_mean[idx_a] = np.mean(_var)
-    auc_coh_an_sem[idx_a] = np.std(_var) / np.sqrt(np.size(_var))
-    del _var
 
 #  5.d. Flame parcellations
     for idx_k in range(np.size(knn_tot)):
         for idx_g in range(np.size(gamma_tot)):
             
-            _var = rel_err_ic[idx_k, idx_g, run_correct[idx_k, idx_g], idx_a]
+            _var = rel_err_coh[idx_k, idx_g, run_correct[idx_k, idx_g], idx_a]
             xi1_mean[idx_k, idx_g, idx_a] = np.mean(_var)
             xi1_sem[idx_k, idx_g, idx_a] = np.std(_var) / np.sqrt(np.size(_var))
             del _var
@@ -256,23 +207,12 @@ for idx_a in range(np.size(alpha_bio_tot)):
             fpr_mean[idx_k, idx_g, idx_a] = np.mean(_var)
             fpr_sem[idx_k, idx_g, idx_a] = np.std(_var) / np.sqrt(np.size(_var))
             del _var
-            
-            _var = auc_ic[idx_k, idx_g, run_correct[idx_k, idx_g], idx_a]
-            auc_ic_mean[idx_k, idx_g, idx_a] = np.mean(_var)
-            auc_ic_sem[idx_k, idx_g, idx_a] = np.std(_var) / np.sqrt(np.size(_var))
-            del _var
-            
-            _var = auc_coh[idx_k, idx_g, run_correct[idx_k, idx_g], idx_a]
-            auc_coh_mean[idx_k, idx_g, idx_a] = np.mean(_var)
-            auc_coh_sem[idx_k, idx_g, idx_a] = np.std(_var) / np.sqrt(np.size(_var))
-            del _var
 
 #   5.e. Specificity (averaged only over subjects)
 tpr_an_perc = np.array([np.sum(tpr_an[:, :, i_a], axis=0)/nc_run_an*100 \
                         for i_a in range(np.size(alpha_bio_tot))])
 tpr_an_perc_mean = np.mean(tpr_an_perc, axis=1)
 tpr_an_perc_sem = np.std(tpr_an_perc, axis=1) / np.sqrt(np.size(subjects))
-
 
 tpr_perc = np.array([np.array([np.array([
         np.sum(tpr[ik, ig, :, :, ia], axis=0) / nc_run[ik, ig] * 100 \
@@ -309,8 +249,8 @@ for idx_a in range(np.size(alpha_bio_tot)):
                 n_run_ttest[idx_k, idx_g, idx_s, idx_a] = sum(aux_run)
             # Relative Error
                 [_, aux_p] = stats.ttest_rel(
-                    rel_err_ic[idx_k, idx_g, aux_run, idx_s, idx_a],
-                    rel_err_ic_an[aux_run, idx_s, idx_a], alternative='less')
+                    rel_err_coh[idx_k, idx_g, aux_run, idx_s, idx_a],
+                    rel_err_coh_an[aux_run, idx_s, idx_a], alternative='less')
                 xi1_p_values[idx_k, idx_g, idx_s, idx_a] = aux_p
             # Ratio with the strongest connection
                 [_, aux_p] = stats.ttest_rel(
@@ -327,7 +267,6 @@ for idx_a in range(np.size(alpha_bio_tot)):
 xi1_max_p_value = xi1_p_values.max(axis=2)
 xi2_max_p_value = xi2_p_values.max(axis=2)
 fpr_max_p_value = fpr_p_values.max(axis=2)
-
 
 # %%
 # In[] Plots.
@@ -346,7 +285,6 @@ colors = np.array([np.array([0, 1, 0]),
                    np.array([0, 0.9655, 1])])
 
 # %%
-idx_a = 1
 for idx_a, alpha in enumerate(alpha_bio_tot):
     # High-level of biological noise
     # Plot 1. Relative error in estimating the connection of interest
@@ -361,7 +299,7 @@ for idx_a, alpha in enumerate(alpha_bio_tot):
                yerr=xi1_an_sem[idx_a]*np.ones(np.size(gamma_tot)), 
                fmt='k--', label='DK')
 
-    ax_eta.set_ylim(0.15, 0.5)
+    ax_eta.set_ylim(0.1, 0.4)
     ax_eta.set_xlim(-0.1, 1.1)
     ax_eta.set_xticks(gamma_tot)
     ax_eta.set_ylabel(r'Relative error', fontsize=_aux_fontsize)
@@ -370,9 +308,9 @@ for idx_a, alpha in enumerate(alpha_bio_tot):
     plt.tight_layout(pad=1.5)
     if do_save_fig:
         if idx_a == 0:
-            f_eta.savefig(op.join(path_fig, 'fc_low_noise_rel_err.png'))
+            f_eta.savefig(op.join(path_fig, 'fc_low_noise_rel_err_coh.png'))
         elif idx_a == 1:
-            f_eta.savefig(op.join(path_fig, 'fc_high_noise_rel_err.png'))
+            f_eta.savefig(op.join(path_fig, 'fc_high_noise_rel_err_coh.png'))
     
     # Plot 2. Ratio with strongest connection
     f_mu = plt.figure()
@@ -395,9 +333,9 @@ for idx_a, alpha in enumerate(alpha_bio_tot):
     plt.tight_layout(pad=1.5)
     if do_save_fig:
         if idx_a == 0:
-            f_mu.savefig(op.join(path_fig, 'fc_low_noise_ratio.png'))
+            f_mu.savefig(op.join(path_fig, 'fc_low_noise_ratio_coh.png'))
         elif idx_a == 1:
-            f_mu.savefig(op.join(path_fig, 'fc_high_noise_ratio.png'))
+            f_mu.savefig(op.join(path_fig, 'fc_high_noise_ratio_coh.png'))
 
     # Plot 3. True positive rate
     f_tpr = plt.figure()
@@ -412,7 +350,7 @@ for idx_a, alpha in enumerate(alpha_bio_tot):
            yerr=tpr_an_perc_sem[idx_a]*np.ones(np.size(gamma_tot)), 
            fmt='k--', label='DK')
     ax_tpr.set_xticks(gamma_tot)
-    ax_tpr.set_ylim(30, 100)
+    ax_tpr.set_ylim(85, 100.5)
     ax_tpr.set_xlim(-0.1, 1.1)
 
     ax_tpr.set_ylabel(r'True positive rate (\%)', fontsize=_aux_fontsize)
@@ -422,11 +360,11 @@ for idx_a, alpha in enumerate(alpha_bio_tot):
     plt.tight_layout(pad=1.5)
     if do_save_fig:
         if idx_a == 0:
-            f_tpr.savefig(op.join(path_fig, 'fc_low_noise_tpr.png'))
+            f_tpr.savefig(op.join(path_fig, 'fc_low_noise_tpr_coh.png'))
         elif idx_a == 1:
-            f_tpr.savefig(op.join(path_fig, 'fc_high_noise_tpr.png')) 
+            f_tpr.savefig(op.join(path_fig, 'fc_high_noise_tpr_coh.png')) 
 
-    # Subplot 4. False positive rate 
+    # Subplot 4. False positive rate
     f_fpr = plt.figure()
     ax_fpr = f_fpr.add_subplot(1,1,1)
     for idx_k, knn in enumerate(knn_tot):
@@ -443,17 +381,17 @@ for idx_a, alpha in enumerate(alpha_bio_tot):
     ax_fpr.set_ylabel(r'False positive rate (\%)', fontsize=_aux_fontsize)
     ax_fpr.set_xlabel(r'Weight of the spatial distances', fontsize=_aux_fontsize)
     if idx_a == 0:
-        ax_fpr.set_ylim(0, 14)
+        ax_fpr.set_ylim(55, 80)
     else:
-        ax_fpr.set_ylim(0, 5)
+        ax_fpr.set_ylim(39, 65)
 
     f_fpr.set_size_inches(5, 4)
     plt.tight_layout(pad=1.5)
     if do_save_fig:
         if idx_a == 0:
-            f_fpr.savefig(op.join(path_fig, 'fc_low_noise_fpr.png'))
+            f_fpr.savefig(op.join(path_fig, 'fc_low_noise_fpr_coh.png'))
         elif idx_a == 1:
-            f_fpr.savefig(op.join(path_fig, 'fc_high_noise_fpr.png'))
+            f_fpr.savefig(op.join(path_fig, 'fc_high_noise_fpr_coh.png'))
 
 
     label_params = ax_fpr.get_legend_handles_labels()
@@ -465,9 +403,9 @@ for idx_a, alpha in enumerate(alpha_bio_tot):
 
     if do_save_fig:
         if idx_a == 0:
-            figl.savefig(op.join(path_fig, 'fc_low_noise_legend.png'))
+            figl.savefig(op.join(path_fig, 'fc_low_noise_legend_coh.png'))
         elif idx_a == 1:
-            figl.savefig(op.join(path_fig, 'fc_high_noise_legend.png'))
+            figl.savefig(op.join(path_fig, 'fc_high_noise_legend_coh.png'))
 
 
 # %%
@@ -497,7 +435,7 @@ f_xi1_tt.set_size_inches(10, 4)
 plt.tight_layout(pad=1.5)
 
 if do_save_fig:
-    f_xi1_tt.savefig(op.join(path_fig, 'rel_err_xi1_ttest.png'))
+    f_xi1_tt.savefig(op.join(path_fig, 'rel_err_xi1_ttest_coh.png'))
 
 #   A2. Ratio with the strongest connection
 f_xi2_tt, ax_xi2_tt = plt.subplots(1, 2)
@@ -523,7 +461,7 @@ f_xi2_tt.set_size_inches(10, 4)
 plt.tight_layout(pad=1.5)
 
 if do_save_fig:
-    f_xi2_tt.savefig(op.join(path_fig, 'xi2_ttest.png'))
+    f_xi2_tt.savefig(op.join(path_fig, 'xi2_ttest_coh.png'))
 
 #   A3. False positive rate
 f_fpr_tt, ax_fpr_tt = plt.subplots(1, 2)
@@ -549,7 +487,7 @@ f_fpr_tt.set_size_inches(10, 4)
 plt.tight_layout(pad=1.5)
 
 if do_save_fig:
-    f_fpr_tt.savefig(op.join(path_fig, 'fpr_ttest.png'))
+    f_fpr_tt.savefig(op.join(path_fig, 'fpr_ttest_coh.png'))
 
 #   A4. True positive rate
 f_tpr_tt, ax_tpr_tt = plt.subplots(1, 2)
@@ -575,7 +513,7 @@ f_tpr_tt.set_size_inches(10, 4)
 plt.tight_layout(pad=1.5)
 
 if do_save_fig:
-    f_tpr_tt.savefig(op.join(path_fig, 'tpr_ttest.png'))
+    f_tpr_tt.savefig(op.join(path_fig, 'tpr_ttest_coh.png'))
 
 # %%
 # In[]: Plots of subjectwise statistical tests
@@ -601,47 +539,4 @@ for idx_s, subject in enumerate(subjects):
     plt.tight_layout(pad=1.5)
 
     if do_save_fig:
-        f_xi1_tt.savefig(op.join(path_fig, 'subs_ttest_{}.png'.format(subject)))
-
-# %%
-
-# In[]: Additional plot: AUC analysis with ic and coh
-f_auc, ax_auc = plt.subplots(2, 2)
-for idx_a, alpha in enumerate(alpha_bio_tot):
-    for idx_k, knn in enumerate(knn_tot):
-        ax_auc[idx_a, 0].errorbar(gamma_tot, 
-               auc_ic_mean[idx_k, :, idx_a], 
-               yerr=auc_ic_sem[idx_k, :, idx_a], label='$k$ = %d'%knn,
-               color=colors[idx_k])
-        ax_auc[idx_a, 1].errorbar(gamma_tot, 
-               auc_coh_mean[idx_k, :, idx_a], 
-               yerr=auc_coh_sem[idx_k, :, idx_a], label='$k$ = %d'%knn,
-               color=colors[idx_k])
-    
-    ax_auc[idx_a, 0].errorbar(gamma_tot, 
-           auc_ic_an_mean[idx_a]*np.ones(np.size(gamma_tot)), 
-           yerr=auc_ic_an_sem[idx_a]*np.ones(np.size(gamma_tot)), 
-           fmt='k--', label='DK')    
-    ax_auc[idx_a, 1].errorbar(gamma_tot, 
-           auc_coh_an_mean[idx_a]*np.ones(np.size(gamma_tot)), 
-           yerr=auc_coh_an_sem[idx_a]*np.ones(np.size(gamma_tot)), 
-           fmt='k--', label='DK')    
-    
-    ax_auc[idx_a, 0].set_ylim(0.6, 1)
-    ax_auc[idx_a, 1].set_ylim(0.6, 1)
-    ax_auc[idx_a, 0].set_ylabel(r'AUC $\beta^b = %1.2f$'%alpha)
-       
-ax_auc[0, 0].set_title('IC')
-ax_auc[0, 1].set_title('COH')
-
-    
-lgd = ax_auc[0, -1].legend(bbox_to_anchor=(1, 0.5), loc='center left',
-                borderaxespad=0.2)
-f_auc.text(0.5, 0.015, 'Weight of the spatial distances', ha='center', 
-                  fontsize=_aux_fontsize)
-f_auc.set_size_inches(10, 9)
-plt.tight_layout(pad=2)
-if do_save_fig:
-    f_auc.savefig(op.join(path_fig, 'auc_ic_coh.png'))
-
-# %%
+        f_xi1_tt.savefig(op.join(path_fig, 'subs_ttest_{}_coh.png'.format(subject)))
