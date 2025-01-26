@@ -233,13 +233,17 @@ colors = np.array([np.array([0, 1, 0]),
                   np.array([0, 0, 1]), 
                   np.array([1, 0, 0]), 
                   np.array([0, 0.9655, 1])])
+color_grey = np.array([112, 128, 144])/256
 
 # %%
 # 7.1. Euclidean localization error
 f_ee = plt.figure()
+#plt.errorbar(gamma_tot, eucl_err_full_ave*np.ones(np.size(gamma_tot)), 
+#             yerr=eucl_err_full_sem*np.ones(np.size(gamma_tot)),
+#             fmt='k--', label='full source-space')
 plt.errorbar(gamma_tot, eucl_err_full_ave*np.ones(np.size(gamma_tot)), 
-             yerr=eucl_err_full_sem*np.ones(np.size(gamma_tot)),
-             fmt='k--', label='full source-space')
+            yerr=eucl_err_full_sem*np.ones(np.size(gamma_tot)),
+            color=color_grey, linestyle='dashed', label='full source-space')
 for idx_k, knn in enumerate(knn_tot):
     plt.errorbar(gamma_tot, 
                  eucl_err_ave[idx_k, :], yerr=eucl_err_sem[idx_k, :],
@@ -268,7 +272,7 @@ plt.errorbar(gamma_tot,
    fmt='k--', label='DK')
 plt.xlabel(r'Weight of the spatial distances', fontsize=30)
 plt.xticks(gamma_tot)
-plt.ylabel(r'Number of source locations ($\%$)',fontsize=30)
+plt.ylabel(r'Correctly estimated locations ($\%$)',fontsize=30)
 plt.ylim(10, 70)
 plt.xlim(-0.1, 1.1)
 f_corr.set_size_inches(6.5, 7)
@@ -285,10 +289,14 @@ for idx_k, knn in enumerate(knn_tot):
 ax_corr_full.errorbar(gamma_tot, 
    correct_roi_an_full_ave*np.ones(np.size(gamma_tot)),
    yerr=correct_roi_an_full_sem*np.ones(np.size(gamma_tot)),
+   color=color_grey, linestyle='dashed', label='Full source space')
+ax_corr_full.errorbar(gamma_tot, 
+   correct_roi_an_full_ave*np.ones(np.size(gamma_tot)),
+   yerr=correct_roi_an_full_sem*np.ones(np.size(gamma_tot)),
    fmt='k--', label='DK')
 ax_corr_full.set_xlabel(r'Weight of the spatial distances', fontsize=30)
 ax_corr_full.set_xticks(gamma_tot)
-ax_corr_full.set_ylabel(r'Number of source locations ($\%$)',fontsize=30)
+ax_corr_full.set_ylabel(r'Correctly estimated locations  ($\%$)',fontsize=30)
 ax_corr_full.set_ylim(10, 70)
 ax_corr_full.set_xlim(-0.1, 1.1)
 f_corr_full.set_size_inches(6.5, 7)
@@ -298,7 +306,7 @@ f_corr_full.savefig(op.join(path_fig, 'corrected_regions_%s_full.png'%method))
 label_params = ax_corr_full.get_legend_handles_labels()
 figl, axl = plt.subplots()
 axl.axis(False)
-axl.legend(*label_params, loc="center", bbox_to_anchor=(0.5, 0.5), prop={"size":12}, ncol=5)
+axl.legend(*label_params, loc="center", bbox_to_anchor=(0.5, 0.5), prop={"size":12}, ncol=6)
 figl.set_size_inches(10, 0.5)
 plt.tight_layout(pad=1.5)
 
@@ -357,6 +365,8 @@ print(di_p_values)
 #clim = {'kind' : 'value', 'lims' : [0, 0.3, 1]}
 subjects = ['k1_T1', 'k2_T1', 'k4_T1', 'k6_T1', 'k7_T1',
            'CC110045', 'CC110182', 'CC110174', 'CC110126', 'CC110056']
+
+clmap = 'hot'
 for idx_sub, subj_sd in enumerate(subjects):
     knn_sd = [20, 30]
     gamma_sd = [0.20, 0.40]
@@ -381,7 +391,8 @@ for idx_sub, subj_sd in enumerate(subjects):
                                       tmin = 0, tstep = 1, subject=subj_sd)
             brain = stc_ee.plot(views="lat", hemi="split", size=(800, 400),
                             subject=subj_sd, subjects_dir=subjects_dir, background="w", 
-                            colorbar=False, clim=clim, time_viewer=False, show_traces=False)
+                            colorbar=False, clim=clim, time_viewer=False, show_traces=False, 
+                            colormap=clmap)
             plot_flame_centroids(flame_data, fwd['src'], subj_sd, 
                         subjects_dir, brain=brain, scale_factor=0.65)
             screenshot = brain.screenshot()
@@ -412,7 +423,8 @@ for idx_sub, subj_sd in enumerate(subjects):
                             tmin = 0, tstep = 1, subject=subj_sd)
     brain = stc_ee_full.plot(views="lat", hemi="split", size=(800, 400),
                     subject=subj_sd, subjects_dir=subjects_dir, background="w", 
-                    colorbar=False, clim=clim, time_viewer=False, show_traces=False)
+                    colorbar=False, clim=clim, time_viewer=False, show_traces=False,
+                    colormap=clmap)
     screenshot = brain.screenshot()
     brain.close()
     nonwhite_pix = (screenshot != 255).any(-1)
@@ -425,9 +437,8 @@ for idx_sub, subj_sd in enumerate(subjects):
     ax.axis("off")
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.2)
-    cbar = plot_brain_colorbar(cax, clim, label='Norm. Loc. Err.')
+    cbar = plot_brain_colorbar(cax, clim, label='Norm. Loc. Err.', colormap='autumn')
     fig.subplots_adjust(left=0.05, right=0.85, bottom=0.01, top=0.9, 
                         wspace=0.1, hspace=0.5)
     fig.savefig(op.join(path_fig,  
         'sp_locerr_%s_full.png'%(subj_sd)))
-

@@ -184,7 +184,7 @@ pseudoxml:
 
 install:
 	rm -rf _build/doctrees _build/megicparc.github.io
-	git clone -b gh-pages --single-branch --no-checkout --depth 1 https://version.aalto.fi/gitlab/sommars1/sara_flame_pythontools.git _build/megicparc.github.io
+	git clone -b gh-pages --single-branch --no-checkout --depth 1 https://github.com/sarasommariva/megicparc.git _build/megicparc.github.io
 	touch _build/megicparc.github.io/.nojekyll
 	make html
 	cd _build/ && \
